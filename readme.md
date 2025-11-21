@@ -12,7 +12,8 @@
 如果你不会操作，以谷歌浏览器为例，右键第一个请求，选择“Copy"，再点击"Copy as cURL"。<br>
 ![谷歌浏览器开发者工具操作示例](images/copy_url_with_bash.png)<br>
 #### 2.2 转换为Python代码
-之后，转到网站：https://curlconverter.com/python/，将复制的cURL命令粘贴到网站中。将生成的Python代码（选中部分）复制到脚本中。<br>
+之后，转到网站：https://curlconverter.com/python/<br>
+将复制的cURL命令粘贴到网站中。将生成的Python代码（选中部分）复制到脚本中。<br>
 ![curlconverter.com操作示例](images/curl_converter.png)<br>
 #### 2.3 运行jjfz.py脚本，坐等完成
 在pycharm或者其他python编辑器中运行jjfz.py脚本，或者在命令行中运行，坐等完成。
