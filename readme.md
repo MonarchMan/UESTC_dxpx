@@ -15,8 +15,11 @@
 之后，转到网站：(https://curlconverter.com/python/)
 ，将复制的cURL命令粘贴到网站中。将生成的Python代码（选中部分）复制到脚本中。<br>
 ![curlconverter.com操作示例](images/curl_converter.png)<br>
-#### 2.3 运行jjfz.py脚本，坐等完成
-在pycharm或者其他python编辑器中运行jjfz.py脚本，或者在命令行中运行，坐等完成。
+#### 2.3 修改jjfz,py脚本Cookies
+将刚刚复制的cookies代码替换到脚本的self.cookies中，即图中红框里的大括号部分。<br>
+![修改cookies示例](images/code.png)<br>
+#### 2.4 运行jjfz.py脚本，坐等完成
+在pycharm或者其他python编辑器中运行jjfz.py脚本，也可以在命令行中运行，坐等完成。
 
 ## 运行效果
 截至到测试时间，脚本顺利运行，并完成所有课程的观看任务。<br>
