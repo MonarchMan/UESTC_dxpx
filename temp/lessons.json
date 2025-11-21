@@ -1,0 +1,576 @@
+[
+    {
+        "lesson_id": "514",
+        "id_params": [
+            {
+                "video_id": 12734,
+                "resource_id": 52651,
+                "r_id": "5213166"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52652,
+                "r_id": "5213229"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52653,
+                "r_id": "5213324"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52654,
+                "r_id": "5213444"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52655,
+                "r_id": "5213646"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52656,
+                "r_id": "5213752"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52657,
+                "r_id": "5213884"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52658,
+                "r_id": "5214063"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52659,
+                "r_id": "5214227"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52660,
+                "r_id": "5242919"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52661,
+                "r_id": "5242973"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52662,
+                "r_id": "5243020"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52663,
+                "r_id": "5243087"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52664,
+                "r_id": "5243377"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52665,
+                "r_id": "5243383"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52666,
+                "r_id": "5243557"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52667,
+                "r_id": "5244671"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52668,
+                "r_id": "5246034"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52669,
+                "r_id": "5246214"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52670,
+                "r_id": "5246288"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52671,
+                "r_id": "5246386"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52672,
+                "r_id": "5246485"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52673,
+                "r_id": "5246647"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52674,
+                "r_id": "5246767"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52675,
+                "r_id": "5246885"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52676,
+                "r_id": "5247010"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52677,
+                "r_id": "5247153"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52678,
+                "r_id": "5247262"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52679,
+                "r_id": "5305429"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52680,
+                "r_id": "5305518"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52681,
+                "r_id": "5305557"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52682,
+                "r_id": "5305612"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52683,
+                "r_id": "5305667"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52684,
+                "r_id": "5305772"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52685,
+                "r_id": "5305859"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52686,
+                "r_id": "5305939"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52687,
+                "r_id": "5306013"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52688,
+                "r_id": "5306072"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52689,
+                "r_id": "5320163"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52690,
+                "r_id": "5320198"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52691,
+                "r_id": "5320258"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52692,
+                "r_id": "5320313"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52693,
+                "r_id": "5320364"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52694,
+                "r_id": "5320413"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52695,
+                "r_id": "5320495"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52696,
+                "r_id": "5320645"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52697,
+                "r_id": "5320718"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52698,
+                "r_id": "5320754"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52699,
+                "r_id": "5320790"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52700,
+                "r_id": "5320864"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52701,
+                "r_id": "5320924"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52702,
+                "r_id": "5320974"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52703,
+                "r_id": "5321044"
+            },
+            {
+                "video_id": 12734,
+                "resource_id": 52704,
+                "r_id": "5321186"
+            },
+            {
+                "video_id": 12740,
+                "resource_id": 52761,
+                "r_id": "5321475"
+            },
+            {
+                "video_id": 12740,
+                "resource_id": 52762,
+                "r_id": "5322131"
+            },
+            {
+                "video_id": 12740,
+                "resource_id": 52763,
+                "r_id": "5323921"
+            },
+            {
+                "video_id": 12757,
+                "resource_id": 52921,
+                "r_id": "5328326"
+            },
+            {
+                "video_id": 12757,
+                "resource_id": 52922,
+                "r_id": "5328337"
+            },
+            {
+                "video_id": 12757,
+                "resource_id": 52923,
+                "r_id": "5328359"
+            },
+            {
+                "video_id": 12757,
+                "resource_id": 52924,
+                "r_id": "5328368"
+            },
+            {
+                "video_id": 12757,
+                "resource_id": 52925,
+                "r_id": "5328382"
+            },
+            {
+                "video_id": 12757,
+                "resource_id": 52926,
+                "r_id": "5328403"
+            },
+            {
+                "video_id": 12757,
+                "resource_id": 52927,
+                "r_id": "5328461"
+            },
+            {
+                "video_id": 12757,
+                "resource_id": 52928,
+                "r_id": "5328525"
+            },
+            {
+                "video_id": 12757,
+                "resource_id": 52929,
+                "r_id": "5328559"
+            },
+            {
+                "video_id": 12757,
+                "resource_id": 52930,
+                "r_id": "5328576"
+            },
+            {
+                "video_id": "12734",
+                "resource_id": 52651,
+                "r_id": 5213166
+            },
+            {
+                "video_id": "12740",
+                "resource_id": 52761,
+                "r_id": 5321475
+            },
+            {
+                "video_id": "12753",
+                "resource_id": 52916,
+                "r_id": 5328277
+            },
+            {
+                "video_id": "12757",
+                "resource_id": 52921,
+                "r_id": 5328326
+            },
+            {
+                "video_id": "12758",
+                "resource_id": 52931,
+                "r_id": 5328616
+            }
+        ]
+    },
+    {
+        "lesson_id": "514",
+        "id_params": [
+            {
+                "video_id": 12782,
+                "resource_id": 52964,
+                "r_id": "5328848"
+            },
+            {
+                "video_id": "12780",
+                "resource_id": 52962,
+                "r_id": 5328704
+            },
+            {
+                "video_id": "12782",
+                "resource_id": 52964,
+                "r_id": 5328848
+            }
+        ]
+    },
+    {
+        "lesson_id": "515",
+        "id_params": [
+            {
+                "video_id": "12804",
+                "resource_id": 53003,
+                "r_id": 5329346
+            },
+            {
+                "video_id": "12833",
+                "resource_id": 53037,
+                "r_id": 5329347
+            }
+        ]
+    },
+    {
+        "lesson_id": "516",
+        "id_params": [
+            {
+                "video_id": "12848",
+                "resource_id": 53066,
+                "r_id": 5329348
+            },
+            {
+                "video_id": "12850",
+                "resource_id": 53077,
+                "r_id": 5329349
+            },
+            {
+                "video_id": "12852",
+                "resource_id": 53083,
+                "r_id": 5329350
+            },
+            {
+                "video_id": "12859",
+                "resource_id": 53093,
+                "r_id": 5329351
+            }
+        ]
+    },
+    {
+        "lesson_id": "517",
+        "id_params": [
+            {
+                "video_id": "12893",
+                "resource_id": 53157,
+                "r_id": 5329352
+            }
+        ]
+    },
+    {
+        "lesson_id": "518",
+        "id_params": [
+            {
+                "video_id": "12924",
+                "resource_id": 53243,
+                "r_id": 5329353
+            }
+        ]
+    },
+    {
+        "lesson_id": "519",
+        "id_params": [
+            {
+                "video_id": "12956",
+                "resource_id": 53324,
+                "r_id": 5329354
+            },
+            {
+                "video_id": "12962",
+                "resource_id": 53340,
+                "r_id": 5329355
+            },
+            {
+                "video_id": "12972",
+                "resource_id": 53362,
+                "r_id": 5329357
+            }
+        ]
+    },
+    {
+        "lesson_id": "520",
+        "id_params": [
+            {
+                "video_id": "13008",
+                "resource_id": 53437,
+                "r_id": 5329358
+            }
+        ]
+    },
+    {
+        "lesson_id": "521",
+        "id_params": [
+            {
+                "video_id": "13011",
+                "resource_id": 53445,
+                "r_id": 5329359
+            },
+            {
+                "video_id": "13012",
+                "resource_id": 53448,
+                "r_id": 5329360
+            },
+            {
+                "video_id": "13019",
+                "resource_id": 53457,
+                "r_id": 5329361
+            },
+            {
+                "video_id": "13020",
+                "resource_id": 53458,
+                "r_id": 5329362
+            }
+        ]
+    },
+    {
+        "lesson_id": "522",
+        "id_params": [
+            {
+                "video_id": "13025",
+                "resource_id": 53468,
+                "r_id": 5329363
+            },
+            {
+                "video_id": "13028",
+                "resource_id": 53482,
+                "r_id": 5329364
+            },
+            {
+                "video_id": "13029",
+                "resource_id": 53487,
+                "r_id": 5329365
+            },
+            {
+                "video_id": "13034",
+                "resource_id": 53500,
+                "r_id": 5329366
+            }
+        ]
+    },
+    {
+        "lesson_id": "523",
+        "id_params": [
+            {
+                "video_id": "13054",
+                "resource_id": 53525,
+                "r_id": 5329368
+            },
+            {
+                "video_id": "13064",
+                "resource_id": 53564,
+                "r_id": 5329369
+            },
+            {
+                "video_id": "13073",
+                "resource_id": 53652,
+                "r_id": 5329370
+            }
+        ]
+    },
+    {
+        "lesson_id": "524",
+        "id_params": [
+            {
+                "video_id": "13088",
+                "resource_id": 53711,
+                "r_id": 5329371
+            },
+            {
+                "video_id": "13106",
+                "resource_id": 53743,
+                "r_id": 5329372
+            }
+        ]
+    },
+    {
+        "lesson_id": "547",
+        "id_params": [
+            {
+                "video_id": "14434",
+                "resource_id": 57955,
+                "r_id": 5329373
+            }
+        ]
+    },
+    {
+        "lesson_id": "553",
+        "id_params": []
+    }
+]
