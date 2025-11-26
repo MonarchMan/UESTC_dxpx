@@ -1,10 +1,14 @@
 ﻿import json
 
+import numpy as np
 import requests
 import os
 import re
+import html
+import pandas as pd
 from urllib.parse import urljoin
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pypinyin import lazy_pinyin
 
 pages = 2
 
@@ -16,15 +20,9 @@ def load_lessons(file_path='./temp/lessons.json'):
 
 
 class JJFZAutoPlayer:
-    def __init__(self):
+    def __init__(self, cookies: dict):
         self.ts_list = []
-        self.cookies = {
-            'first_lesson_study': '1',
-            '_xsrf': '2|8d1892bd|0fd757f0a4a52949a179c5a18981bfd6|1763696939',
-            'is_first': '"2|1:0|10:1763717002|8:is_first|4:MA==|2548a59054020800b906b3be54822c32143c05608b0dbd9479589c031a941373"',
-            'token': 'eyJ0eXAiOiJqd3QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozMDczMiwic3RhdGUiOjEsInVzZXJfc2lkIjoiMjAyNTIxMTEwNDExIiwidXNlcl9uYW1lIjoiXHU1ZjZkXHU1YjUwXHU2MDUyIiwidXNlcl9wd2QiOiJiYWNiYmMxNTc0ZTkxMzY3NzhkMmFkMzQ1ZDhhYjBlMWY4MGE3ODlhIiwicGFydHlfY2F0ZWdvcnkiOjAsInBoYXNlIjoyLCJhdmF0YXIiOiIiLCJ0cnVlX2F2YXRhciI6IiIsInJvbGVfaWQiOjEsInBhcnR5X2JyYW5jaCI6IiIsInNzb19pZCI6IiIsImlzX3ZpcnR1YWwiOjAsImlzX2ZpcnN0X2xvZ2luIjowLCJzdGF0ZV9pZCI6NDc5NTQsInNlc3Npb24iOiIwYzQ3YjkxOS0zYTZlLTRjMWItYmI5OS00MTAzNzdiYWQ2YTciLCJ0b2tlbiI6MTc2MzcxNzAwMiwiZXhwIjoxNzYzNzE4ODAyfQ.f5pBhUj2UoUJOdUkttqLPNzbdOemkpEv0NdW-eiMMlQ',
-            'ua_id': '"2|1:0|10:1763717021|5:ua_id|524:eyJ1c2VyX2lkIjogMzA3MzIsICJzdGF0ZSI6IDEsICJ1c2VyX3NpZCI6ICIyMDI1MjExMTA0MTEiLCAidXNlcl9uYW1lIjogIlx1NWY2ZFx1NWI1MFx1NjA1MiIsICJ1c2VyX3B3ZCI6ICJiYWNiYmMxNTc0ZTkxMzY3NzhkMmFkMzQ1ZDhhYjBlMWY4MGE3ODlhIiwgInBhcnR5X2NhdGVnb3J5IjogMCwgInBoYXNlIjogMiwgImF2YXRhciI6ICIiLCAidHJ1ZV9hdmF0YXIiOiAiIiwgInJvbGVfaWQiOiAxLCAicGFydHlfYnJhbmNoIjogIiIsICJzc29faWQiOiAiIiwgImlzX3ZpcnR1YWwiOiAwLCAiaXNfZmlyc3RfbG9naW4iOiAwLCAic3RhdGVfaWQiOiA0Nzk1NCwgInNlc3Npb24iOiAiMGM0N2I5MTktM2E2ZS00YzFiLWJiOTktNDEwMzc3YmFkNmE3IiwgInRva2VuIjogMTc2MzcxNzAwMn0=|7698ae9ac85c10a40a4c4f16c563c05d65283208499d66d87b06a55ef9e0e2bb"',
-        }
+        self.cookies = cookies
 
         self.headers = {
             'Accept': 'application/json, text/javascript, */*; q=0.01',
@@ -42,6 +40,10 @@ class JJFZAutoPlayer:
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"Windows"',
         }
+        self.radio_df = pd.DataFrame()
+        self.checkbox_df = pd.DataFrame()
+        self.yes_or_no_df = pd.DataFrame()
+        self.gap_filling_df = pd.DataFrame()
 
     def parse_m3u8(self, url: str):
         """
@@ -330,7 +332,7 @@ class JJFZAutoPlayer:
                     id_params.append((video_id, resource_id, r_id))
                 print(f"课程{lesson_id}的相关参数已获取")
 
-                # 处理微课件
+                # 处理只有v_id的微课件或者专家讲座课程
                 for video_id in courseware_ids:
                     id_pair = self.get_course_ware_extra_ids(v_id=video_id)
                     r_id = int(id_pair[0])
@@ -379,14 +381,369 @@ class JJFZAutoPlayer:
                     })
         return failed_lessons
 
+    def get_exam_paper(self, r_id: int):
+        params = {
+            'rid': r_id,
+        }
+        url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/end_show'
+        response = requests.get(url=url, params=params, cookies=self.cookies, headers=self.headers)
+        return self.extract_questions(response.text)
+
+    def get_lesson_exam_paper(self, rid: int):
+        params = {
+            'rid': rid,
+        }
+        url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/show'
+
+        response = requests.get(url=url, params=params, cookies=self.cookies, headers=self.headers)
+        return self.extract_questions(response.text)
+
+
+    def collect_unique_questions(self, r_ids: list, lesson_r_ids: list=None, save: bool=False):
+        # 使用字典存储不同类型的题目，天然去重
+        if lesson_r_ids is None:
+            lesson_r_ids = []
+        questions_by_type = {
+            'radios': {},
+            'checkboxes': {},
+            'yes_or_nos': {},
+            'gap_fillings': {}
+        }
+        interval = len(r_ids)
+        r_ids.extend(lesson_r_ids)
+
+        for i, r_id in enumerate(r_ids):
+            if i < interval:
+                radios, checkboxes, yes_or_nos, gap_fillings = self.get_exam_paper(r_id)
+            else:
+                radios, checkboxes, yes_or_nos, gap_fillings = self.get_lesson_exam_paper(r_id)
+
+            # 添加单选题
+            for radio in radios:
+                if radio['title'] not in questions_by_type['radios']:
+                    questions_by_type['radios'][radio['title']] = radio
+
+            # 添加多选题
+            for checkbox in checkboxes:
+                if checkbox['title'] not in questions_by_type['checkboxes']:
+                    questions_by_type['checkboxes'][checkbox['title']] = checkbox
+
+            # 添加判断题
+            for yes_or_no in yes_or_nos:
+                if yes_or_no['title'] not in questions_by_type['yes_or_nos']:
+                    questions_by_type['yes_or_nos'][yes_or_no['title']] = yes_or_no
+
+            # 添加填空题
+            for gap_filling in gap_fillings:
+                if gap_filling['title'] not in questions_by_type['gap_fillings']:
+                    questions_by_type['gap_fillings'][gap_filling['title']] = gap_filling
+
+        # 转换为列表并按拼音排序
+        total_radios = self.sort_by_pinyin(list(questions_by_type['radios'].values()))
+        total_checkboxes = self.sort_by_pinyin(list(questions_by_type['checkboxes'].values()))
+        total_yes_or_nos = self.sort_by_pinyin(list(questions_by_type['yes_or_nos'].values()))
+        total_gap_fillings = self.sort_by_pinyin(list(questions_by_type['gap_fillings'].values()))
+        # 转换为DataFrame
+        radio_df = pd.DataFrame(total_radios)
+        checkbox_df = pd.DataFrame(total_checkboxes)
+        yes_or_no_df = pd.DataFrame(total_yes_or_nos)
+        gap_filling_df = pd.DataFrame(total_gap_fillings)
+
+        # 保存结果到本地文件
+        if save:
+            # 保存为Parquet文件
+            self.save_result_parquet(radio_df, checkbox_df, yes_or_no_df, gap_filling_df)
+            # 保存为CSV文件
+            self.save_result(radio_df, checkbox_df, yes_or_no_df, gap_filling_df)
+
+        return radio_df, checkbox_df, yes_or_no_df, gap_filling_df
+
+    def get_exam_list(self) -> list:
+        """
+        获取已完成的考试列表
+        :return: 已完成的考试列表，每个元素为一个考试ID（rid）
+        """
+        url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/end_record'
+        response = requests.get(url=url, cookies=self.cookies, headers=self.headers)
+        pattern = r'rid=(\d+)'
+        r_ids = re.findall(pattern, response.text)
+        r_ids = [int(r_id) for r_id in r_ids]
+        return r_ids
+
+    def get_lesson_exam_list(self):
+        """
+        获取已完成的课程考试列表
+        :return: 已完成的课程考试列表，每个元素为一个考试ID（rid）
+        """
+        url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/record'
+        response = requests.get(url=url, cookies=self.cookies, headers=self.headers)
+        pattern = r'rid=(\d+)'
+        r_ids = re.findall(pattern, response.text)
+        r_ids = [int(r_id) for r_id in r_ids]
+        return r_ids
+
+    def load_questions(self, input_dir: str='./temp'):
+        """
+        从指定目录加载题目数据
+        :param input_dir: 输入文件路径，默认值为 './temp'
+        :return:
+        """
+        self.radio_df = pd.read_parquet(os.path.join(input_dir, 'radios.parquet'))
+        self.checkbox_df = pd.read_parquet(os.path.join(input_dir, 'checkboxes.parquet'))
+        self.yes_or_no_df = pd.read_parquet(os.path.join(input_dir, 'yes_or_nos.parquet'))
+        self.gap_filling_df = pd.read_parquet(os.path.join(input_dir, 'gap_fillings.parquet'))
+
+    def search_answer(self, question: str, question_type: str):
+        """
+        搜索指定题目类型的答案
+        :param question: 题目内容
+        :param question_type: 题目类型，可选值为 'radio', 'checkbox', 'yes_or_no', 'gap_filling'
+        :return: 题目对应的答案
+        """
+        if question_type == 'radio':
+            df = self.radio_df
+        elif question_type == 'checkbox':
+            df = self.checkbox_df
+        elif question_type == 'yes_or_no':
+            df = self.yes_or_no_df
+        elif question_type == 'gap_filling':
+            df = self.gap_filling_df
+        else:
+            raise ValueError(f"Invalid question type: {question_type}")
+
+        row = df[df['title'] == question]
+        if not row.empty:
+            return row.iloc[0]['correct_answer']
+        else:
+            return ''
+
+    def update_questions(self, new_radios_df: pd.DataFrame, new_checkboxes_df: pd.DataFrame, 
+                         new_yes_or_nos_df: pd.DataFrame, new_gap_fillings_df: pd.DataFrame,
+                         output_dir: str = './temp'):
+        """
+        更新题目数据，将新题目合并到现有DataFrame中并保持拼音排序
+        :param new_radios_df: 新的单选题DataFrame
+        :param new_checkboxes_df: 新的多选题DataFrame
+        :param new_yes_or_nos_df: 新的判断题DataFrame
+        :param new_gap_fillings_df: 新的填空题DataFrame
+        :param output_dir: 输出目录，默认值为 './temp'
+        """
+        # 确保DataFrame已加载
+        if self.radio_df.empty or self.checkbox_df.empty or self.yes_or_no_df.empty or self.gap_filling_df.empty:
+            self.load_questions(output_dir)
+        
+        # 合并并去重各类题目
+        def merge_and_deduplicate(existing_df, new_df):
+            if new_df.empty:
+                return existing_df
+            
+            # 合并两个DataFrame
+            combined_df = pd.concat([existing_df, new_df], axis=0, ignore_index=True)
+            # 根据title列去重，保留第一个出现的值
+            deduplicated_df = combined_df.drop_duplicates(subset=['title'], keep='first')
+
+            # 直接对DataFrame进行拼音排序
+            # 使用sort_values方法配合自定义排序键
+            sorted_df = deduplicated_df.sort_values(
+                by='title',
+                key=lambda x: x.apply(lambda y: ''.join(lazy_pinyin(str(y))))
+            )
+
+            return sorted_df
+        
+        # 执行合并与去重
+        updated_radios_df = merge_and_deduplicate(self.radio_df, new_radios_df)
+        updated_checkboxes_df = merge_and_deduplicate(self.checkbox_df, new_checkboxes_df)
+        updated_yes_or_nos_df = merge_and_deduplicate(self.yes_or_no_df, new_yes_or_nos_df)
+        updated_gap_fillings_df = merge_and_deduplicate(self.gap_filling_df, new_gap_fillings_df)
+        
+        # 更新实例的DataFrame
+        self.radio_df = updated_radios_df
+        self.checkbox_df = updated_checkboxes_df
+        self.yes_or_no_df = updated_yes_or_nos_df
+        self.gap_filling_df = updated_gap_fillings_df
+        
+        # 保存到文件
+        self.save_result_parquet(updated_radios_df, updated_checkboxes_df, updated_yes_or_nos_df, updated_gap_fillings_df,
+                                 output_dir)
+        self.save_result(updated_radios_df, updated_checkboxes_df, updated_yes_or_nos_df, updated_gap_fillings_df, output_dir)
+
+    @staticmethod
+    def extract_questions(html: str):
+        pattern = r'<div class="error_sub">(.*?)</div>\s*(?=<div class="error_sub"|<!--    <div class="foot_top">-->)'
+        error_subs = re.findall(pattern, html, re.DOTALL)
+        radios = []
+        checkboxes = []
+        yes_or_nos = []
+        gap_fillings = []
+
+        for error_sub_content in error_subs:
+            item = {}
+
+            # 2. 提取 h3 标签中的标题
+            title_pattern = r'<h3>(.*?)</h3>'
+            title_match = re.search(title_pattern, error_sub_content, re.DOTALL)
+            if title_match:
+                # 先去除开头数字，再处理空白字符
+                cleaned_title = re.sub(r'^\d+、\s*', '', title_match.group(1))
+                # 清理空白字符
+                item['title'] = re.sub(r'\s+', ' ', cleaned_title.strip())
+            else:
+                item['title'] = ''
+
+            # 3. 提取所有 label 中的选项文本
+            # 匹配 <label>...</label> 并提取其中除了 input 标签外的文本
+            label_pattern = r'<label[^>]*>(.*?)</label>'
+            labels = re.findall(label_pattern, error_sub_content, re.DOTALL)
+
+            options = []
+            for label_content in labels:
+                # 移除 input 标签
+                option_text = re.sub(r'<input[^>]*/?>', '', label_content)
+                # 清理空白字符
+                option_text = re.sub(r'\s+', ' ', option_text.strip())
+                if option_text:
+                    options.append(option_text)
+
+            item['options'] = np.array(options)
+
+            # 4. 提取 class="sub_color" 的 span 中的正确答案
+            answer_pattern = r'<span class="sub_color">(.*?)</span>'
+            answer_match = re.search(answer_pattern, error_sub_content)
+            if answer_match:
+                item['correct_answer'] = answer_match.group(1).strip()[5:]
+            else:
+                # 没有提供正确答案，默认设为空字符串
+                # item['correct_answer'] = ''
+                # 没有提供正确答案，无意义，跳过
+                continue
+
+            prefix = item['title'][:5]
+            item['title'] = item['title'][5:].strip()
+            if prefix == '【单选题】':
+                radios.append(item)
+            elif prefix == '【多选题】':
+                checkboxes.append(item)
+            elif prefix == '【判断题】':
+                yes_or_nos.append(item)
+            elif prefix == '【填空题】':
+                answer_text_pattern = r'<div class="sub_cont">(.*?)</div>'
+                answer_text_match = re.search(answer_text_pattern, error_sub_content)
+                if answer_text_match:
+                    item['correct_answer'] = answer_text_match.group(1).strip()
+                gap_fillings.append(item)
+
+        return radios, checkboxes, yes_or_nos, gap_fillings
+
+    @staticmethod
+    def save_result(radios_df: pd.DataFrame, checkboxes_df: pd.DataFrame, yes_or_nos_df: pd.DataFrame, gap_fillings_df: pd.DataFrame, output_dir: str= './temp'):
+        """
+        保存考试结果到指定目录
+        :param radios_df: 单选题DataFrame，包含题目信息和用户答案
+        :param checkboxes_df: 多选题DataFrame，包含题目信息和用户答案
+        :param yes_or_nos_df: 判断题DataFrame，包含题目信息和用户答案
+        :param gap_fillings_df: 填空题DataFrame，包含题目信息和用户答案
+        :param output_dir: 输出文件路径，默认值为 './exam_results.json'
+        """
+        # 确保输出目录存在
+        os.makedirs(output_dir, exist_ok=True)
+
+        # 定义题目类型和对应的文件名
+        question_types = [
+            ('单选', radios_df, 'radios.txt'),
+            ('多选', checkboxes_df, 'checkboxes.txt'),
+            ('判断', yes_or_nos_df, 'yes_or_nos.txt'),
+            ('填空', gap_fillings_df, 'gap_fillings.txt')
+        ]
+
+        # 处理每种题型
+        for type_name, questions_df, filename in question_types:
+            filepath = os.path.join(output_dir, filename)
+
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(f"{type_name}题 (共{len(questions_df)}道)\n\n")
+
+                # 为每个题目添加编号并写入文件
+                for i, question_row in questions_df.iterrows():
+                    # 写入编号
+                    f.write(f"{i}. ")
+
+                    # 写入title（第一行）
+                    title = html.unescape(question_row.get('title', '无标题'))
+                    f.write(f"{title}\n")
+
+                    # 写入options（第二行，如果不为空）
+                    if 'options' in question_row.index and question_row['options'].any():
+                        options = question_row['options']
+                        # 如果options是字典格式 {"A": "选项A", "B": "选项B", ...}
+                        if isinstance(options, dict):
+                            options_str = '; '.join([f"{key}: {value}" for key, value in options.items()])
+                        # 如果options是列表格式 ["选项A", "选项B", ...]
+                        elif isinstance(options, (list, tuple)):
+                            options_str = '; '.join(options)
+                        else:
+                            options_str = str(options)
+                        f.write(f"{options_str}\n")
+
+                    # 写入正确答案（第三行）
+                    answer = question_row.get('correct_answer', 'Error!')
+                    f.write(f"正确答案: {answer}\n")
+
+                    # 添加题目标题分隔符
+                    f.write("-" * 50 + "\n\n")
+
+            print(f"已将{len(questions_df)}道{type_name}题保存到: {filepath}")
+
+    @staticmethod
+    def save_result_parquet(radios_df: pd.DataFrame, checkboxes_df: pd.DataFrame, yes_or_nos_df: pd.DataFrame, gap_fillings_df: pd.DataFrame, output_dir: str= './temp'):
+        """
+        保存考试结果到指定目录
+        :param radios_df: 单选题DataFrame，包含题目信息和用户答案
+        :param checkboxes_df: 多选题DataFrame，包含题目信息和用户答案
+        :param gap_fillings_df: 填空题DataFrame，包含题目信息和用户答案
+        :param yes_or_nos_df: 判断题DataFrame，包含题目信息和用户答案
+        :param output_dir: 输出文件路径，默认值为 './exam_results.parquet'
+        """
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        radio_path = os.path.join(output_dir, 'radios.parquet')
+        checkboxes_path = os.path.join(output_dir, 'checkboxes.parquet')
+        yes_or_nos_path = os.path.join(output_dir, 'yes_or_nos.parquet')
+        gap_fillings_path = os.path.join(output_dir, 'gap_fillings.parquet')
+
+        radios_df.to_parquet(radio_path, index=False)
+        checkboxes_df.to_parquet(checkboxes_path, index=False)
+        yes_or_nos_df.to_parquet(yes_or_nos_path, index=False)
+        gap_fillings_df.to_parquet(gap_fillings_path, index=False)
+
+    @staticmethod
+    def sort_by_pinyin(items):
+        """按title的拼音顺序排序题目列表"""
+        return sorted(items, key=lambda x: ''.join(lazy_pinyin(x['title'])) if 'title' in x else '')
+
 
 def main():
+    cookies = {
+        'first_lesson_study': '1',
+        '_xsrf': '2|95603c0c|6a5e80cd340c5747d2f5683bc6a566b2|1763696561',
+        'menu_open': 'false',
+        'is_first': '"2|1:0|10:1764071481|8:is_first|4:MA==|145c6b85b9a55bced47d1948924c5d4885c292c248811b4143c5af37960714b1"',
+        'token': 'eyJ0eXAiOiJqd3QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozMDczMiwic3RhdGUiOjEsInVzZXJfc2lkIjoiMjAyNTIxMTEwNDExIiwidXNlcl9uYW1lIjoiXHU1ZjZkXHU1YjUwXHU2MDUyIiwidXNlcl9wd2QiOiJiYWNiYmMxNTc0ZTkxMzY3NzhkMmFkMzQ1ZDhhYjBlMWY4MGE3ODlhIiwicGFydHlfY2F0ZWdvcnkiOjAsInBoYXNlIjoyLCJhdmF0YXIiOiIiLCJ0cnVlX2F2YXRhciI6IiIsInJvbGVfaWQiOjEsInBhcnR5X2JyYW5jaCI6IiIsInNzb19pZCI6IiIsImlzX3ZpcnR1YWwiOjAsImlzX2ZpcnN0X2xvZ2luIjowLCJzdGF0ZV9pZCI6NDc5NTQsInNlc3Npb24iOiIyM2RhOTYzYy02NTY0LTQ5NjUtOTFmZi1lNTNhOTRhMjg5MTciLCJ0b2tlbiI6MTc2NDA3MTQ4MSwiZXhwIjoxNzY0MDczMjgxfQ.NPHzPdG0EXyST2bXqt4Y_Pr95ijcnUYFOm0pJFX6lyM',
+        'ua_id': '"2|1:0|10:1764086656|5:ua_id|524:eyJ1c2VyX2lkIjogMzA3MzIsICJzdGF0ZSI6IDEsICJ1c2VyX3NpZCI6ICIyMDI1MjExMTA0MTEiLCAidXNlcl9uYW1lIjogIlx1NWY2ZFx1NWI1MFx1NjA1MiIsICJ1c2VyX3B3ZCI6ICJiYWNiYmMxNTc0ZTkxMzY3NzhkMmFkMzQ1ZDhhYjBlMWY4MGE3ODlhIiwgInBhcnR5X2NhdGVnb3J5IjogMCwgInBoYXNlIjogMiwgImF2YXRhciI6ICIiLCAidHJ1ZV9hdmF0YXIiOiAiIiwgInJvbGVfaWQiOiAxLCAicGFydHlfYnJhbmNoIjogIiIsICJzc29faWQiOiAiIiwgImlzX3ZpcnR1YWwiOiAwLCAiaXNfZmlyc3RfbG9naW4iOiAwLCAic3RhdGVfaWQiOiA0Nzk1NCwgInNlc3Npb24iOiAiMjNkYTk2M2MtNjU2NC00OTY1LTkxZmYtZTUzYTk0YTI4OTE3IiwgInRva2VuIjogMTc2NDA3MTQ4MX0=|0a9cbcb345d2d47f07cddea9e1d0b942c5744a1a13de9ad0b2b221140c4dd827"',
+    }
 
-    player = JJFZAutoPlayer()
-    failed_lessons = player.get_lessons_and_save(output_dir='./temp')
+    player = JJFZAutoPlayer(cookies=cookies)
+    # failed_lessons = player.get_lessons_and_save(output_dir='./temp')
     # player.get_required_lessons(lesson_id=517)
-    print(f"失败的课程: {failed_lessons}")
+    # print(f"失败的课程: {failed_lessons}")
     # player.get_required_lessons(lesson_id=515)
+    # player.get_exam_paper(595964)
+    r_ids = player.get_exam_list()
+    # r_ids = [611867]
+    # player.load_questions()
+    lesson_r_ids = player.get_lesson_exam_list()
+    new_raios_df, new_checkboxes_df, new_yes_or_nos_df, new_gap_fillings_df = player.collect_unique_questions(r_ids=r_ids, lesson_r_ids=lesson_r_ids)
+    player.update_questions(new_raios_df, new_checkboxes_df, new_yes_or_nos_df, new_gap_fillings_df)
 
 
 if __name__ == "__main__":
