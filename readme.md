@@ -16,10 +16,10 @@
 ，将复制的cURL命令粘贴到网站中。将生成的Python代码（选中部分）复制到脚本中。<br>
 ![curlconverter.com操作示例](images/curl_converter.png)<br>
 #### 2.3 修改jjfz,py脚本Cookies
-将刚刚复制的cookies代码替换到脚本的self.cookies中，即图中红框里的大括号部分。<br>
+将刚刚复制的cookies代码替换到脚本的main函数中的cookies中，即图中红框里的大括号部分。<br>
 ![修改cookies示例](images/code.png)<br>
 #### 2.4 运行jjfz.py脚本，坐等完成
-在pycharm或者其他python编辑器中运行jjfz.py脚本，也可以在命令行中运行，坐等完成。
+在pycharm或者其他python编辑器中运行jjfz.py脚本的get_lessons_and_save函数，也可以在命令行中运行，坐等完成。
 
 ## 主要功能
 ### 1. 视频刷课
