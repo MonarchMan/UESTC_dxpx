@@ -547,7 +547,7 @@ class JJFZAutoPlayer:
             sorted_df = deduplicated_df.sort_values(
                 by='title',
                 key=lambda x: x.apply(lambda y: ''.join(lazy_pinyin(str(y))))
-            )
+            ).reset_index(drop=True)
 
             return sorted_df
         
@@ -643,7 +643,7 @@ class JJFZAutoPlayer:
         :param checkboxes_df: 多选题DataFrame，包含题目信息和用户答案
         :param yes_or_nos_df: 判断题DataFrame，包含题目信息和用户答案
         :param gap_fillings_df: 填空题DataFrame，包含题目信息和用户答案
-        :param output_dir: 输出文件路径，默认值为 './exam_results.json'
+        :param output_dir: 输出文件目录，默认值为 './temp'
         """
         # 确保输出目录存在
         os.makedirs(output_dir, exist_ok=True)
@@ -666,7 +666,7 @@ class JJFZAutoPlayer:
                 # 为每个题目添加编号并写入文件
                 for i, question_row in questions_df.iterrows():
                     # 写入编号
-                    f.write(f"{i}. ")
+                    f.write(f"{i + 1}. ")
 
                     # 写入title（第一行）
                     title = html.unescape(question_row.get('title', '无标题'))
@@ -733,6 +733,11 @@ def main():
     }
 
     player = JJFZAutoPlayer(cookies=cookies)
+    player.load_questions()
+    player.save_result(player.radio_df.reset_index(drop=True), player.checkbox_df.reset_index(drop=True),
+                       player.yes_or_no_df.reset_index(drop=True), player.gap_filling_df.reset_index(drop=True))
+    player.save_result_parquet(player.radio_df.reset_index(drop=True), player.checkbox_df.reset_index(drop=True),
+                               player.yes_or_no_df.reset_index(drop=True), player.gap_filling_df.reset_index(drop=True))
     # failed_lessons = player.get_lessons_and_save(output_dir='./temp')
     # player.get_required_lessons(lesson_id=517)
     # print(f"失败的课程: {failed_lessons}")
