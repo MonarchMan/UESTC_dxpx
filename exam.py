@@ -84,7 +84,7 @@ class Exam:
             player = JJFZAutoPlayer(self.cookies)
             player.load_questions()
         self.start_exam()
-        print("开始考试")
+        print("开始综合测试")
         new_radios = []
         new_checkboxes = []
         new_yes_or_nos = []
@@ -289,7 +289,7 @@ class Exam:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
     def finish_all_lesson_exams(self, player: JJFZAutoPlayer=None):
-        lesson_ids = [514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 547, 553]
+        lesson_ids = [567, 568, 569, 570, 571, 572, 573, 574, 575, 576, 577]
         new_radios, new_checkboxes, new_yes_or_nos = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
         for lesson_id in lesson_ids:
             radios, checkboxes, yes_or_nos = self.finish_lesson_exam(lesson_id, return_new=True, player=player)
@@ -352,12 +352,11 @@ class Exam:
 
 def main():
     cookies = {
-        'first_lesson_study': '1',
-        '_xsrf': '2|95603c0c|6a5e80cd340c5747d2f5683bc6a566b2|1763696561',
+        '_xsrf': '2|50c39dbf|59a5a9c2e1d8bd270abeda544ba39aa9|1779195541',
+        'is_first': '"2|1:0|10:1779201638|8:is_first|4:MA==|37f1419d1d5829322f6a042ff2decc441134808aae2215ec275ba183ef0b2f0e"',
+        'token': 'eyJ0eXAiOiJqd3QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozMjk0OCwic3RhdGUiOjEsInVzZXJfc2lkIjoiMjAyNDEzMDEwMjAyNSIsInVzZXJfbmFtZSI6Ilx1NWMzOVx1ODIyYSIsInVzZXJfcHdkIjoiZTc0NjM0MGU1OWY3ZmUxY2VhYzc2YzcxMDAzMDJhMmQ3MjhjNGY1NCIsInBhcnR5X2NhdGVnb3J5IjowLCJwaGFzZSI6MiwiYXZhdGFyIjoiIiwidHJ1ZV9hdmF0YXIiOiIiLCJyb2xlX2lkIjoxLCJwYXJ0eV9icmFuY2giOiIiLCJzc29faWQiOiIiLCJpc192aXJ0dWFsIjowLCJpc19maXJzdF9sb2dpbiI6MCwic3RhdGVfaWQiOjUxNzE2LCJzZXNzaW9uIjoiMDIyODQ5NGUtZDY3YS00NWQyLWI4YmEtNzgyZWFmY2E1YjhlIiwidG9rZW4iOjE3NzkyMDE2MzgsImV4cCI6MTc3OTIwMzQzOH0.YdZrBDfWXN4aaQqLLoIF_MR6A3HajSOhgmmPyeOLLvM',
         'menu_open': 'false',
-        'is_first': '"2|1:0|10:1764089803|8:is_first|4:MA==|cd2cf025ed7ad821dad88c02585a6cc94699e0cb0e9534a01aa6d238db89fc86"',
-        'token': 'eyJ0eXAiOiJqd3QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozMDcyNywic3RhdGUiOjEsInVzZXJfc2lkIjoiMjAyNTIxMTEwMzIzIiwidXNlcl9uYW1lIjoiXHU1ZjkwXHU0ZTM0XHU1ZGRkIiwidXNlcl9wd2QiOiI5NTFlYWFhODNlODUzZmEwMzk0ODQwOTE2ZTlmZjljMGE5NGZmZjZhIiwicGFydHlfY2F0ZWdvcnkiOjAsInBoYXNlIjoyLCJhdmF0YXIiOiIiLCJ0cnVlX2F2YXRhciI6IiIsInJvbGVfaWQiOjEsInBhcnR5X2JyYW5jaCI6IiIsInNzb19pZCI6IiIsImlzX3ZpcnR1YWwiOjAsImlzX2ZpcnN0X2xvZ2luIjowLCJzdGF0ZV9pZCI6NDc5NDksInNlc3Npb24iOiJmZGQ5OGNlMC00OTJjLTQ0YzItYmY2Yi0xYTNhMTAzNWJlZDUiLCJ0b2tlbiI6MTc2NDA4OTgwMywiZXhwIjoxNzY0MDkxNjAzfQ.D24TXxTwf_mbdHaK6QfciBWhUm1rLIFB-f-uM9TYib8',
-        'ua_id': '"2|1:0|10:1764089878|5:ua_id|524:eyJ1c2VyX2lkIjogMzA3MjcsICJzdGF0ZSI6IDEsICJ1c2VyX3NpZCI6ICIyMDI1MjExMTAzMjMiLCAidXNlcl9uYW1lIjogIlx1NWY5MFx1NGUzNFx1NWRkZCIsICJ1c2VyX3B3ZCI6ICI5NTFlYWFhODNlODUzZmEwMzk0ODQwOTE2ZTlmZjljMGE5NGZmZjZhIiwgInBhcnR5X2NhdGVnb3J5IjogMCwgInBoYXNlIjogMiwgImF2YXRhciI6ICIiLCAidHJ1ZV9hdmF0YXIiOiAiIiwgInJvbGVfaWQiOiAxLCAicGFydHlfYnJhbmNoIjogIiIsICJzc29faWQiOiAiIiwgImlzX3ZpcnR1YWwiOiAwLCAiaXNfZmlyc3RfbG9naW4iOiAwLCAic3RhdGVfaWQiOiA0Nzk0OSwgInNlc3Npb24iOiAiZmRkOThjZTAtNDkyYy00NGMyLWJmNmItMWEzYTEwMzViZWQ1IiwgInRva2VuIjogMTc2NDA4OTgwM30=|66e0eb98d5a3d68a6724e28ee868a68197e82d7fb5a4b7f54a0f92fbe1e0ec6f"',
+        'ua_id': '2|1:0|10:1779203883|5:ua_id|516:eyJ1c2VyX2lkIjogMzI5NDgsICJzdGF0ZSI6IDEsICJ1c2VyX3NpZCI6ICIyMDI0MTMwMTAyMDI1IiwgInVzZXJfbmFtZSI6ICJcdTVjMzlcdTgyMmEiLCAidXNlcl9wd2QiOiAiZTc0NjM0MGU1OWY3ZmUxY2VhYzc2YzcxMDAzMDJhMmQ3MjhjNGY1NCIsICJwYXJ0eV9jYXRlZ29yeSI6IDAsICJwaGFzZSI6IDIsICJhdmF0YXIiOiAiIiwgInRydWVfYXZhdGFyIjogIiIsICJyb2xlX2lkIjogMSwgInBhcnR5X2JyYW5jaCI6ICIiLCAic3NvX2lkIjogIiIsICJpc192aXJ0dWFsIjogMCwgImlzX2ZpcnN0X2xvZ2luIjogMCwgInN0YXRlX2lkIjogNTE3MTYsICJzZXNzaW9uIjogIjAyMjg0OTRlLWQ2N2EtNDVkMi1iOGJhLTc4MmVhZmNhNWI4ZSIsICJ0b2tlbiI6IDE3NzkyMDE2Mzh9|83ca338a7a0c24500cff386e4654750a323668cf2db07188aaf27f8e77f5263c',
     }
 
     exam = Exam(cookies=cookies)
@@ -369,7 +368,8 @@ def main():
     # exam.answer_lesson_question(lesson_id=514, question_id=1, qid=qid, answer=options[0][1])
     # for i in range(100):
     #     exam.finish_all_lesson_exams()
-    exam.finish_many_lesson_exams(echos=50)
+    # exam.finish_many_lesson_exams(echos=50)
+    exam.finish_many_exams(echos=10)
 
 
 if __name__ == '__main__':

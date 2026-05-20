@@ -1,0 +1,824 @@
+<img class="" src id="loading_l1utuupb"/>Which is a commonly accepted spelling of the Chinese name 郭永怀?
+A: Guoyonghuai
+B: Guo YongHuai
+C: Guo Yong Huai
+D: Guo Yonghuai
+Answer: D
+
+A description of a device is usually accompanied by an illustration.
+true: 正确
+false: 错误
+Answer: true
+
+A formal personal bio usually starts with a ______.
+A: full name
+B: given name
+C: family name
+D: middle name
+Answer: A
+
+A personal bio for formal professional communication is usually written from the ______ point of view.
+A: first-person
+B: second-person
+C: third-person
+D: inanimate
+Answer: C
+
+A research paper usually uses illustrations to show the structure of a device or a system.
+true: 正确
+false: 错误
+Answer: true
+
+A research paper usually uses words to show the function of a device or a system.
+true: 正确
+false: 错误
+Answer: true
+
+A technical manual usually contains a detailed textual description of a device.
+true: 正确
+false: 错误
+Answer: false
+
+An application letter to a professor usually takes a ______ style.
+A: very informal
+B: semi-informal
+C: semi-formal
+D: very formal
+Answer: C
+
+How can paraphrased language differ from the original?
+A: Using idioms.
+B: Using synonyms.
+C: Changing word class.
+D: Changing word order.
+Answer: C, B, D
+
+How can we avoid plagiarism?
+A: Use plagiarism checkers regularly while writing.
+B: Raise the awareness of plagiarism.
+C: Improve summarizing and paraphrasing skills.
+D: Copy and paste in a smarter way.
+Answer: C, B
+
+In our report, we shall explain why a highlighted data is worth noticing.
+true: 正确
+false: 错误
+Answer: true
+
+In our report, we shall focus more on findings instead of results.
+true: 
+false: 
+Answer: true
+
+In our report, we shall present all we have found from our analysis of data.
+true: 正确
+false: 错误
+Answer: false
+
+In the specification part of a device description, we need to explain how the device works.
+true: 正确
+false: 错误
+Answer: false
+
+In the textual data report with visual displays, we need to specify the location of the mentioned data.
+true: 正确
+false: 错误
+Answer: true
+
+In the textual data report, we shall describe a trend shown instead of giving out the original data.
+true: 正确
+false: 错误
+Answer: true
+
+In your email exchange with a professor, you can mention his/her publications with an effort to _______.<br/>
+A: raise an interesting question about it
+B: suggest some extensions of it
+C: mention some applications of it
+D: relate it directly to your work
+Answer: A, C, B, D
+
+Specifications are preferred over detailed textual descriptions in technical writing.
+true: 
+false: 
+Answer: true
+
+The word “data” only refers to information in the form of numbers.
+true: 正确
+false: 错误
+Answer: false
+
+The word “data” refers to all the information existing in the world.
+true: 正确
+false: 错误
+Answer: false
+
+The word “data” refers to information in an electronic form that can be stored and used by a computer.
+true: 正确
+false: 错误
+Answer: true
+
+The word “data” refers to the information collected for a specific purpose.
+true: 正确
+false: 错误
+Answer: true
+
+The “physical features” of a device refers to ______.
+A: its patent
+B: its weight
+C: its material
+D: its texture
+Answer: C, B, D
+
+This is an appropriate “confidently uncertain” claim:  The results show that smoking is the cause of lung cancer.
+true: 正确
+false: 错误
+Answer: false
+
+This is an appropriate “confidently uncertain” claim: It could be concluded that some evidence seems to suggest that at least certain villagers might not have traded their pottery with others outside the community.
+true: 正确
+false: 错误
+Answer: false
+
+This is an appropriate “confidently uncertain” claim: Recycling is the best solution to the waste disposal problem, as our study finds.
+true: 正确
+false: 错误
+Answer: false
+
+This is an appropriate “confidently uncertain” claim: Table 3 shows that alcohol leads to brain damage in teenagers.
+true: 正确
+false: 错误
+Answer: false
+
+This is an appropriate “confidently uncertain” claim: The finding suggests that some physical exercise might be able to prevent depression to some degree.
+true: 正确
+false: 错误
+Answer: true
+
+This is an appropriate “confidently uncertain” claim: The latest series of studies question the value of including consumer expectations in the assessment of service quality.
+true: 正确
+false: 错误
+Answer: true
+
+This is an appropriate “confidently uncertain” claim: The result proves that the increase in human activities caused environmental degradation in the area.
+true: 正确
+false: 错误
+Answer: false
+
+This is an appropriate “confidently uncertain” claim: The results in Figure 4 validate the second conclusion that certain bacteria reduce arsenic levels in groundwater.
+true: 正确
+false: 错误
+Answer: false
+
+This is an appropriate “confidently uncertain” claim: The results show that smoking contributes to lung cancer.
+true: 正确
+false: 错误
+Answer: true
+
+This is an appropriate “confidently uncertain” claim:  In spite of its limitations, the study might appear to have a number of important strengths to some degree.
+true: 正确
+false: 错误
+Answer: false
+
+This is an appropriate “confidently uncertain” claim:  The results indicate that there is a link between smoking and lung cancer.
+true: 正确
+false: 错误
+Answer: true
+
+This is an appropriate “confidently uncertain” claim:  The results prove that there is a link between smoking and lung cancer.
+true: 正确
+false: 错误
+Answer: true
+
+This is an appropriate “confidently uncertain” claim:  The results show that lung cancer is caused by smoking.
+true: 正确
+false: 错误
+Answer: false
+
+This is an appropriate “confidently uncertain” claim: Studies have found that quantum entanglement may play a role in some types of magnetoreception with certain molecules, but more work is needed to explore this phenomenon.
+true: 正确
+false: 错误
+Answer: true
+
+This is an appropriate “confidently uncertain” claim:  The measure might be more sensitive to changes in health after specialist treatment.
+true: 正确
+false: 错误
+Answer: true
+
+This is most probably a/an ______: <em>Automatic audio processing algorithms are used to robustly detect speech in the audio and split speech into short, easy to transcribe segments. Sequences of speech segments are loaded into a specially designed transcription interface that enables a human transcriber to simply listen and type, obviating the need for manually finding and segmenting speech or explicitly controlling audio playback. As a result, playback stays synchronized to the transcriber’s speed of transcription.</em>
+A: narration of a specific method adopted
+B: general description of a study method
+C: instruction on a research method
+Answer: B
+
+This is most probably a/an ______: <em>Automatic audio processing algorithms were used to robustly detect speech in the audio and split speech into short, easy to transcribe segments. Sequences of speech segments were loaded into a specially designed transcription interface that synchronizes playback with a transcriber’s speed of transcription, so that a human transcriber simply listens and types, obviating the need for manually finding and segmenting speech or explicitly controlling audio playback.</em>
+A: narration of a specific method adopted
+B: general description of a study method
+C: instruction on a research method
+Answer: A
+
+This is most probably a/an ______: <em>How does BlitzScribe work? It uses automatic audio processing algorithms to robustly detect speech in the audio, and split speech into short, easy to transcribe segments. Then these segments are loaded into a specially designed transcription interface. This interface can synchronize playback automatically with a transcriber’s speed of transcription. A human transcriber simply needs to listen and type. He doesn’t need to find a speech himself, or cut the speech, or control the audio playback.</em>
+A: narration of a specific method adopted
+B: general description of a study method
+C: instruction on a research method
+Answer: B
+
+This is most probably a/an ______: <em>Use automatic audio processing algorithms to detect speech in the audio and split speech into short, easy to transcribe segments. Then load sequences speech segments into a specially designed transcription interface. Listen to the speech segments and type out the scripts. The interface automatically synchronizes the audio and the transcriber’s speed of transcription.</em>
+A: narration of a specific method adopted
+B: general description of a study method
+C: instruction on a research method
+Answer: C
+
+This is most probably a/an ______: <em>We can use automatic audio processing algorithms to robustly detect speech in the audio, and then split speech into short, easy to transcribe segments. We load sequences of speech segments into a specially designed transcription interface. On the interface a human transcriber doesn’t need to find and segment speech manually, or explicitly control audio playback. The transcriber only needs to listen and type. Playback stays synchronized to the transcriber’s speed of transcription.</em>
+A: narration of a specific method adopted
+B: general description of a study method
+C: instruction on a research method
+Answer: B
+
+This is most probably a/an ______: <em>We first detected speech in the audio with automatic audio processing algorithms, and split speech into short, easy to transcribe segments. Then sequences of speech segments were loaded into a specially designed transcription interface which synchronizes audio playback with a transcriber’s speed of transcription automatically. Five transcribers listened and transcribed the speech segments.</em>
+A: narration of a specific method adopted
+B: general description of a study method
+C: instruction on a research method
+Answer: A
+
+This is most probably from a ______: <em>Automatic audio processing algorithms are used to robustly detect speech in the audio and split speech into short, easy to transcribe segments. Sequences of speech segments are loaded into a specially designed transcription interface that enables a human transcriber to simply listen and type, obviating the need for manually finding and segmenting speech or explicitly controlling audio playback. As a result, playback stays synchronized to the transcriber’s speed of transcription.</em>
+A: experiment report
+B: user manual
+C: college lecture
+D: course book
+Answer: D
+
+This is most probably from a ______: <em>Automatic audio processing algorithms were used to robustly detect speech in the audio and split speech into short, easy to transcribe segments. Sequences of speech segments were loaded into a specially designed transcription interface that synchronizes playback with a transcriber’s speed of transcription, so that a human transcriber simply listens and types, obviating the need for manually finding and segmenting speech or explicitly controlling audio playback.</em>
+A: experiment report
+B: user manual
+C: college lecture
+D: course book
+Answer: A
+
+This is most probably from a ______: <em>How does BlitzScribe work? It uses automatic audio processing algorithms to robustly detect speech in the audio, and split speech into short, easy to transcribe segments. Then these segments are loaded into a specially designed transcription interface. This interface can synchronize playback automatically with a transcriber’s speed of transcription. A human transcriber simply needs to listen and type. He doesn’t need to find a speech himself, or cut the speech, or control the audio playback.</em>
+A: experiment report
+B: user manual
+C: college lecture
+D: course book
+Answer: C
+
+This is most probably from a ______: <em>Use automatic audio processing algorithms to detect speech in the audio and split speech into short, easy to transcribe segments. Then load sequences speech segments into a specially designed transcription interface. Listen to the speech segments and type out the scripts. The interface automatically synchronizes the audio and the transcriber’s speed of transcription.</em>
+A: experiment report
+B: user manual
+C: college lecture
+D: course book
+Answer: B
+
+This is most probably from a ______: <em>We can use automatic audio processing algorithms to robustly detect speech in the audio, and then split speech into short, easy to transcribe segments. We load sequences of speech segments into a specially designed transcription interface. On the interface a human transcriber doesn’t need to find and segment speech manually, or explicitly control audio playback. The transcriber only needs to listen and type. Playback stays synchronized to the transcriber’s speed of transcription.</em>
+A: experiment report
+B: user manual
+C: college lecture
+D: course book
+Answer: C
+
+This is most probably from a ______: <em>We first detected speech in the audio with automatic audio processing algorithms, and split speech into short, easy to transcribe segments. Then sequences of speech segments were loaded into a specially designed transcription interface which synchronizes audio playback with a transcriber’s speed of transcription automatically. Five transcribers listened and transcribed the speech segments.</em>
+A: experiment report
+B: user manual
+C: college lecture
+D: course book
+Answer: A
+
+This sentence contains a variety of standard definition: "<em>Conventional machine-learning techniques were limited in their ability to process natural data in their raw form.</em>"
+true: 
+false: 
+Answer: false
+
+This sentence contains a variety of standard definition: "<em>Machine-learning technology powers many aspects of modern society: from web searches to content filtering on social net-works to recommendations on e-commerce websites</em>."
+true: 
+false: 
+Answer: false
+
+This sentence contains a variety of standard definition: "<em>Preventive measures include wearing masks, keeping personal hygiene, and social distancing.</em>"
+true: 
+false: 
+Answer: false
+
+This sentence contains a variety of standard definition: "<em>SGD refers to stochastic gradient descent.</em>"
+true: 
+false: 
+Answer: false
+
+This sentence contains a variety of standard definition: "<em>The White House, the official residence and principal workplace of the President of the United States, is located at 1600 Pennsylvania Avenue NW in Washington, D.C.</em>"
+true: 
+false: 
+Answer: true
+
+This sentence contains a variety of standard definition: "<em>The majority of corporate profits, or earnings after all the operating expenses have been deducted, are subject to tax by the government.</em>"
+true: 
+false: 
+Answer: true
+
+This sentence contains a variety of standard definition: "<em>These adjustable parameters, often called weights, are real numbers that can be seen as knobs' that define the input-output function of the machine.</em>"
+true: 
+false: 
+Answer: true
+
+We can cite data from other studies when we comment on our data.
+true: 正确
+false: 错误
+Answer: true
+
+We can explain the reasons for a finding when we report data.
+true: 正确
+false: 错误
+Answer: true
+
+We can mention the implications of a finding when we report data.
+true: 正确
+false: 错误
+Answer: true
+
+We can use either present tense or past tense when we talk about our findings.
+true: 正确
+false: 错误
+Answer: true
+
+We usually use past tense when we report a direct observation.
+true: 正确
+false: 错误
+Answer: true
+
+We usually use present tense when we offer our analysis.
+true: 正确
+false: 错误
+Answer: true
+
+What are the features of a credible journal?
+A: It is peer-reviewed.
+B: It is open access.
+C: It has an online version.
+D: It has a high impact factor.
+Answer: A, D
+
+What are the features of a good paraphrase?
+A: No new facts is added.
+B: No message is distorted.
+C: Comments are embedded.
+D: All main ideas and important details are kept.
+Answer: A, B, D
+
+What are the language features of a summary?
+A: Different expressions to express the same meaning.
+B: Discipline-specific terms to illustrate the message.
+C: Concise language to cover the major points.
+D: Accurate expressions to show the main idea.
+Answer: A, C, D
+
+What are the must-included elements of a standard definition?
+A: A term to be defined.
+B: A link verb that connects the term and its definition.
+C: A category word that shows the nature of the term.
+D: A feature description distinguishing the term from other terms in the same category.
+Answer: A, C, D
+
+What is a definition?
+A: It&#39;s an explanation of the term&#39;s meaning.
+B: It&#39;s the display of the term&#39;s nature.<br/>
+C: It&#39;s the clarification of the term&#39;s advantages.
+D: It&#39;s the description of the term&#39;s distinctive feature.
+Answer: A, B, D
+
+What is the most possible term defined by this definition: "<em>______ is an evolving term that describes a large volume of structured, semi-structured and unstructured data that has the potential to be mined for information and used in machine learning projects and other advanced analytics applications.</em>"
+A: Big Data
+B: Cloud Computing
+C: Data Mining
+D: Machine Learning
+Answer: A
+
+What questions do we usually ask when deciding on a credible source to cite?
+A: Who is the author?
+B: Where is it published?
+C: How can it be accessed?
+D: When is it published?
+Answer: A, B, D
+
+What questions shall we ask when preparing for an oral presentation?
+A: What identity do I have as a speaker?
+B: What do I want to achieve with this talk?
+C: Who will be my audience?
+D: What visual aids can I use?
+Answer: A, C, B, D
+
+What shall we take into consideration for more effective communication?
+A: My identity.
+B: My purpose.
+C: My audience.
+D: My medium
+Answer: A, C, B, D
+
+What technique is used in this extended definition: <em>"A Motherboard is the main circuit board that serves as a platform to connect all the parts of a computer. It serves as the “nervous system” of a computer, and connects all computer parts to each other, so that electrical signals are conducted through it."</em>
+A: Comparison.
+B: Example.
+C: Classification
+D: Details.
+Answer: A
+
+What technique is used in this extended definition: <em>"ConvNet is a type of deep, feedforward network designed to process data that come in the form of multiple arrays. There are four key ideas behind ConvNets that take advantage of the properties of natural signals: local connections, shared weights, pooling and the use of many layers."</em>
+A: Comparison.
+B: Example.
+C: Classification
+D: Details.
+Answer: C
+
+What technique is used in this extended definition:<em> "I was born with a rare visual condition called achromatopsia, which is total color blindness, so I've never seen color, and I don't know what color looks like. To me, the sky is always gray, flowers are always gray, and television is still in black and white."</em>
+A: Comparison.
+B: Example.
+C: Classification
+D: Details.
+Answer: B
+
+When describing a device, what information could be included?
+A: its shape
+B: its components
+C: its material
+D: its texture
+Answer: A, C, B, D
+
+When is it acceptable to use material from the Internet without citation?
+A: When your own words are used to express the same idea.
+B: When only a few words from the original webpage are copied.
+C: When the used material is widely accepted as common knowledge
+D: When only images are used.
+E: When the same material appears on many different websites without citation.
+Answer: C
+
+When we cite data from a study, we need to give out a detailed description of a whole set of data.
+true: 正确
+false: 错误
+Answer: false
+
+When we cite data from a study, we need to give out the source or the location, so that the audience would know where to get more detail for that data.
+true: 正确
+false: 错误
+Answer: true
+
+When we cite data from a study, we need to present the original table or figure together with a textual description.
+true: 正确
+false: 错误
+Answer: false
+
+When we cite data from a study, we only need to give out the specific data.
+true: 正确
+false: 错误
+Answer: false
+
+When we cite data from a study, we usually interpret the meaning of the data instead of just giving out the data itself.
+true: 正确
+false: 错误
+Answer: true
+
+When we describe a device, we need to describe every components in detail.
+true: 正确
+false: 错误
+Answer: false
+
+When we describe a device, we need to explain how it is structured.
+true: 正确
+false: 错误
+Answer: true
+
+When we describe the structure of a device, we usually talk about the ______.
+A: differences between the components
+B: connections between the components
+C: features of a component
+D: method of replacing a component
+Answer: C, B
+
+Where are the sentences most possibly from: "Hey, a party tonight. Wanna go?"
+A: A research article.
+B: A newspaper report.
+C: A speech at a college graduation ceremony.
+D: A chat between friends.
+Answer: D
+
+Where are the sentences most possibly from: "Now a group of researchers in Minnesota is going that same route with lab-grown hearts. Yes, it may sound kind of like science fiction, but organs grown in a lab could eventually replace today's transplants."
+A: A research article.
+B: A newspaper report.
+C: A report on TV.
+D: A chat between friends.
+Answer: C
+
+Where is the sentence most possibly from: "We should undertake any necessary measures at the earliest opportunity in case of the possible negative effects."
+A: A research article.
+B: A newspaper report.
+C: A report on TV.
+D: A chat between friends.
+Answer: B
+
+Where is this sentence most possibly from: "Plans to collect similar corpora from more children based on a transportable recording system are underway."
+A: A research article.
+B: A newspaper report.
+C: A report on TV.
+D: A chat between friends.
+Answer: A
+
+Which are commonly accepted citations of the following information:
+There is nothing inhuman about an intelligent machine; it is indeed an expression of those superb intellectual capabilities that only human beings, of all the creatures on our planet, now possess. 
+A: We don’t need to take artificial intelligence as inhuman, because it is indeed an expression of those superb intellectual capabilities that only human beings now possess (Sagan, 1979).
+B: We don&#39;t need to regard artificial intelligence as &quot;inhuman&quot;, as Sagan claims, because &quot;an intelligent machine&quot; is &quot;an expression&quot; of human intelligence (Sagan 1979:292).
+C: Sagan (1979) argues that artificial intelligence should not be considered inhuman because it is based on the unique human intelligence.
+D: As Sagan pointed out, intelligent machines should be regarded as “inhuman” (Sagan, 1979:292)
+Answer: C, B, D
+
+Which are commonly accepted descriptions of one's education?
+A: He graduated from UESTC with a bachelor&#39;s degree.
+B: He graduated from UESTC with a Bachelor&#39;s degree.
+C: He graduated from UESTC with a Bachelor degree.
+D: He graduated from UESTC with a bachelor&#39;s of science degree.
+E: He graduated from UESTC with a Bachelor&#39;s of Science.
+F: He graduated from UESTC with a Bachelor of Science.
+Answer: A, F
+
+Which are commonly accepted spellings of the Chinese name 邓稼先?
+A: Deng, Jiaxian
+B: DENG Jiaxian
+C: Jiaxian, Deng
+D: JIAXIAN Deng
+Answer: A, B
+
+Which are considered plagiarism, according to IEEE?
+A: Uncredited verbatim copying.
+B: Uncredited paraphrasing.
+C: Credited verbatim copying without clear delineation.
+D: Credited paraphrasing without the original words.
+Answer: A, C, B
+
+Which are the typical features of a formal style?
+A: Slangs.
+B: Jargon.
+C: Phrasal verbs.
+D: Non-personal pronouns.
+Answer: B, D
+
+Which are the typical features of a formal style?
+A: Personal opinions.
+B: Objective facts.
+C: Specific details.
+D: High information density.
+Answer: C, B, D
+
+Which are the typical features of an informal style?
+A: Contractions like "can't".
+B: Heavy use of nouns.
+C: Complex sentence structures.
+D: Personal opinions.
+Answer: A, D
+
+Which are the typical features of an informal style?
+A: Short sentences.
+B: “Things” as subject.
+C: Passive voice.
+D: Direct questions.
+Answer: A, D
+
+Which expressions can be used to describe the material of a device component?
+A: rubber
+B: metal
+C: cord
+D: plastic
+Answer: A, B, D
+
+Which expressions can be used to describe the shape of a device component?
+A: spiral
+B: linear
+C: rectangular
+D: cubic
+Answer: A, C, B, D
+
+Which expressions can be used to describe the texture of a device component?
+A: fine
+B: crude
+C: elastic
+D: concave
+Answer: A, C, B
+
+Which expressions can be used to mention the components of a device?
+A: be composed of
+B: be consisted of
+C: be constructed of
+D: be constituted of
+Answer: A, C, D
+
+Which is a legitimate paraphrase of this sentence: 
+"Conventional machine-learning techniques were limited in their ability to process natural data in their raw form."
+A: Machine-learning aims at natural data processing.
+B: Traditional machine-learning algorisms cannot process natural data.
+C: Machine-learning has increased its capability in natural data processing.
+D: Traditional machine-learning algorisms may need to transform the raw data before processing.
+Answer: D
+
+Which is a legitimate paraphrase of this sentence: "Hackers have used patched software vulnerabilities to attack systems of local governments, who are often slow to update their systems."
+A: Local government systems were hacked because they don&#39;t install the patches in a timely manner and leave the vulnerabilities for hackers.
+B: Hackers attacked the local governent because the governments are not aware of the vulnerabilities of their computer systems.
+C: Local governments usually don’t&#39; update their computer systems regularly, so that the hackers could attack them via the patches.
+D: Hackers took advantage of the patched software vulnerabilities and attacked the local governments.
+Answer: A
+
+Which is an appropriate feature description for this definition: "A saw is a cutting tool which ______."
+A: farmers often use to chop firewoods.
+B: chefs often use to split big fish.
+C: is a hardened piece of metal with a sharp point on one end.
+D: is a long, thin blade with a series of teeth on one side.
+Answer: D
+
+Which is the appropriate category word for this definition: "<em>Algorithm is a set of ______ a computer follows in calculations or other problem-solving operations.</em>"
+A: apps
+B: processes
+C: rules
+D: simulations
+Answer: C
+
+Which is the category word in this definition: "<em>A bar code reader is an input device to read the information of bar codes</em>."
+A: reader
+B: device
+C: information
+D: codes
+Answer: B
+
+Which is the category word in this definition: "<em>Engineering is the application of science and math to solve problems</em>."
+A: engineering.
+B: application.
+C: science.
+D: problems.
+Answer: B
+
+Which is the correct understanding of the "appropriateness" in self-introduction?
+A: We need to be suitable or proper in the circumstances.
+B: We need to present the right information in the right language style.
+C: We need to be honest and sincere when introducing ourselves.
+D: We need to take self-introduction seriously and follow a more formal style.
+Answer: A, B
+
+Which is usually regarded as a credible source to cite in the field of science and technology?
+A: Wikipedia.
+B: www.baidu.com
+C: Official website of National Natural Science Foundation of China
+D: A Weibo post on a new finding in the application of Deep Learning.
+Answer: C
+
+Which might result if one is labled a plagiarist?
+A: A ruined professional career.
+B: Ethical issues..
+C: Possible legal consequences.
+D: Criticism from the public.
+Answer: A, C, B, D
+
+Which of the following are usually included in a personal bio for academic purposes?
+A: Title
+B: Affiliation
+C: Hometown
+D: Current work
+Answer: A, B, D
+
+Which of the following describes a good networking email to a professor for a PhD application?
+A: <span style="color: #666666; font-family: Arial, Helvetica, sans-serif; font-size: 14px;">It relates your work to the professor’s work.</span>
+B: <span style="color: #666666; font-family: Arial, Helvetica, sans-serif; font-size: 14px;">It lists out all the courses you have studied.</span>
+C: <span style="color: #666666; font-family: Arial, Helvetica, sans-serif; font-size: 14px;">It shows your determination to return to China after the program.</span>
+D: <span style="color: #666666; font-family: Arial, Helvetica, sans-serif; font-size: 14px;">It includes a touch of flattery.</span>
+Answer: A, D
+
+Which of the following is the officially suggested spelling for the Chinese name 钱学森, according to The Chinese Phonetic Alphabet Spelling Rules for Chinese Names?
+A: Qianxuesen
+B: Qian Xue Sen
+C: Xue-sen Qian
+D: QIAN Xuesen
+Answer: D
+
+Which of the following statements need to be cited?
+A: Common knowledge.
+B: One or two exact words from an artical.
+C: Only one sentence from a book.
+D: A specific experimental method.
+E: An idea from a book explained in your own words.
+F: Data collected by yourself.
+G: A conclusion you draw based on facts provided by other authors.
+H: A diagram from another article you have published.
+Answer: H, C, B, E, D
+
+Which of the following statements need to be cited?
+A: Italy is a European country.
+B: The Spanish GDP grew by 3.2% in 2015.
+C: The People&#39;s Republic of China was founded in 1949.
+D: Renewable energy technologies have deployed rapidly in Germany largely as a result of the country&#39;s energy policies.
+Answer: B, D
+
+Which of the following statements need to be cited?
+A: Social media apps like WeChat allow people to communicate easily.
+B: Wechat, a mobile application which provides instant messaging, was founded by the Tencent Group in 2011.
+C: Studies show that social media apps likeWeChat could improve students’ vocabulary acquisition in foreign language.
+D: WeChat has become the largest app in the world because it has combined various features of different apps in addition to the wallet service.
+Answer: C, D
+
+Which of the following statements need to be cited?
+A: Drunk driving is the act of driving under the influence of alcohol.
+B: Drunk driving refers to operating a motor vehicle while one&#39;s blood alcohol content is above &nbsp;8/100ths &nbsp;of one percent by weight of alcohol to the weight of blood test.
+C: Drunk driving is a major cause of fatal car accidents.
+D: Drunk driving contributes to 58% of auto fatalities every year.
+Answer: B, D
+
+Which of the following statements need to be cited?
+A: Artificial intelligence is the simulation of human intelligence processes by machines, especially computer systems.
+B: There are four primary AI types: reactive, limited memory, theory of mind, and self-aware.
+C: Stephen Hawking warned that artificial intelligence might spell the end of the human race.
+D: Artificial intelligence has impacted many aspect of people&#39;s lives.
+Answer: A, C, B
+
+Which questions are usually answered when describing a device in technical writing?
+A: How does it evolve?
+B: How does it function?
+C: How is it available?
+D: How is it evaluated?
+Answer: A, B, D
+
+Which questions are usually answered when we describe a system?
+A: What are the components?
+B: What are the features of each part?
+C: How can it be improved?
+D: How can it be installed?
+Answer: A, B
+
+Which sentence has the most formal style?
+A: Don’t send anything off until you’re told to do so.
+B: Please await instructions before dispatching items.
+C: Please wait for instructions before sending items off.
+D: Wait! When they tell you, you send them off.
+Answer: B
+
+Which sentence has the most formal style?
+A: <div class="custom_ueditor_cn_body"><p>The Ninth Symphony is Beethoven’s crowning
+masterpiece.</p></div>
+B: The Ninth Symphony is Beethoven’s best work.
+C: Beethoven&#39;s Ninth Symphony is his best, I think.
+D: Beethoven&#39;s Ninth Symphony is definitly many people&#39;s favorite.
+Answer: A
+
+Which sentence has the most formal style?
+A: Essential measures should be undertaken at the earliest opportunity.
+B: We should undertake any necessary measures at the earliest opportunity.
+C: We should do our best at the earliest opportunity.
+D: You should do whatever you have to as soon as you can.
+Answer: A
+
+Which sentence has the most formal style?
+A: Can I ask a question?
+B: Hey, I have a question.
+C: I&#39;m wondering if I can ask a question.
+D: There is a question I would like to raise.
+Answer: D
+
+Which sentence has the most formal style?
+A: Some math problems are given to the test takers.
+B: I gave the test subjects some math problems to solve.
+C: <div class="custom_ueditor_cn_body"><p>Test subjects are given a
+sheet of paper containing a series of 20 &nbsp;matrices</p></div>
+D: <div class="custom_ueditor_cn_body"><p>Test subjects are given a task
+sheet with a series of 20 &nbsp;matrices</p></div>
+Answer: D
+
+Which statement is true about plagiarism?
+A: Tranditional Chinese culture encourages plagiarism.
+B: Traditional Chinese culture has its own system of citation.
+C: Accidental plagiarism is unavoidable in the academia. 
+D: Intentional plagiarism might result in sever consequences.
+Answer: B, D
+
+Which usually shows the most formal style of language?
+A: <span style="text-wrap: wrap;">A college course report.</span>
+B: A student email to a professor.
+C: A job application cover letter.
+D: Messages on a social media app.<br/>
+Answer: A
+
+Which usually shows the most informal style of language?
+A: A chat between friends.
+B: A talk show.
+C: An ad for a restaurant.
+D: A State of the Union address
+Answer: A
+
+Why do we cite?
+A: To acknowledge the work of others.
+B: To put the issue concerned in a context.
+C: To provide credibility to our claims.
+D: To avoid plagiarism.
+E: To help the audiece to further pursue the topic. 
+Answer: A, C, B, E, D
+
+Why do we define?
+A: To introduce a new concept.
+B: To stress the nature of the term defined.
+C: To emphasize some features of the term.
+D: To exclude ambiguity.
+Answer: A, C, B, D
+
+Your email to a professor is expected to be ______.<br/>
+A: specific
+B: respectful
+C: relevant
+D: personal
+Answer: A, C, B
+

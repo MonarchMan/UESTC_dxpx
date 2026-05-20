@@ -673,7 +673,7 @@ class JJFZAutoPlayer:
                     f.write(f"{title}\n")
 
                     # 写入options（第二行，如果不为空）
-                    if 'options' in question_row.index and question_row['options'].any():
+                    if 'options' in question_row.index and question_row['options'].size > 0:
                         options = question_row['options']
                         # 如果options是字典格式 {"A": "选项A", "B": "选项B", ...}
                         if isinstance(options, dict):
@@ -724,20 +724,19 @@ class JJFZAutoPlayer:
 
 def main():
     cookies = {
-        'first_lesson_study': '1',
-        '_xsrf': '2|95603c0c|6a5e80cd340c5747d2f5683bc6a566b2|1763696561',
-        'menu_open': 'false',
-        'is_first': '"2|1:0|10:1764071481|8:is_first|4:MA==|145c6b85b9a55bced47d1948924c5d4885c292c248811b4143c5af37960714b1"',
-        'token': 'eyJ0eXAiOiJqd3QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozMDczMiwic3RhdGUiOjEsInVzZXJfc2lkIjoiMjAyNTIxMTEwNDExIiwidXNlcl9uYW1lIjoiXHU1ZjZkXHU1YjUwXHU2MDUyIiwidXNlcl9wd2QiOiJiYWNiYmMxNTc0ZTkxMzY3NzhkMmFkMzQ1ZDhhYjBlMWY4MGE3ODlhIiwicGFydHlfY2F0ZWdvcnkiOjAsInBoYXNlIjoyLCJhdmF0YXIiOiIiLCJ0cnVlX2F2YXRhciI6IiIsInJvbGVfaWQiOjEsInBhcnR5X2JyYW5jaCI6IiIsInNzb19pZCI6IiIsImlzX3ZpcnR1YWwiOjAsImlzX2ZpcnN0X2xvZ2luIjowLCJzdGF0ZV9pZCI6NDc5NTQsInNlc3Npb24iOiIyM2RhOTYzYy02NTY0LTQ5NjUtOTFmZi1lNTNhOTRhMjg5MTciLCJ0b2tlbiI6MTc2NDA3MTQ4MSwiZXhwIjoxNzY0MDczMjgxfQ.NPHzPdG0EXyST2bXqt4Y_Pr95ijcnUYFOm0pJFX6lyM',
-        'ua_id': '"2|1:0|10:1764086656|5:ua_id|524:eyJ1c2VyX2lkIjogMzA3MzIsICJzdGF0ZSI6IDEsICJ1c2VyX3NpZCI6ICIyMDI1MjExMTA0MTEiLCAidXNlcl9uYW1lIjogIlx1NWY2ZFx1NWI1MFx1NjA1MiIsICJ1c2VyX3B3ZCI6ICJiYWNiYmMxNTc0ZTkxMzY3NzhkMmFkMzQ1ZDhhYjBlMWY4MGE3ODlhIiwgInBhcnR5X2NhdGVnb3J5IjogMCwgInBoYXNlIjogMiwgImF2YXRhciI6ICIiLCAidHJ1ZV9hdmF0YXIiOiAiIiwgInJvbGVfaWQiOiAxLCAicGFydHlfYnJhbmNoIjogIiIsICJzc29faWQiOiAiIiwgImlzX3ZpcnR1YWwiOiAwLCAiaXNfZmlyc3RfbG9naW4iOiAwLCAic3RhdGVfaWQiOiA0Nzk1NCwgInNlc3Npb24iOiAiMjNkYTk2M2MtNjU2NC00OTY1LTkxZmYtZTUzYTk0YTI4OTE3IiwgInRva2VuIjogMTc2NDA3MTQ4MX0=|0a9cbcb345d2d47f07cddea9e1d0b942c5744a1a13de9ad0b2b221140c4dd827"',
+        '_xsrf': '2|50c39dbf|59a5a9c2e1d8bd270abeda544ba39aa9|1779195541',
+        'is_first': '"2|1:0|10:1779201638|8:is_first|4:MA==|37f1419d1d5829322f6a042ff2decc441134808aae2215ec275ba183ef0b2f0e"',
+        'ua_id': '2|1:0|10:1779201638|5:ua_id|516:eyJ1c2VyX2lkIjogMzI5NDgsICJzdGF0ZSI6IDEsICJ1c2VyX3NpZCI6ICIyMDI0MTMwMTAyMDI1IiwgInVzZXJfbmFtZSI6ICJcdTVjMzlcdTgyMmEiLCAidXNlcl9wd2QiOiAiZTc0NjM0MGU1OWY3ZmUxY2VhYzc2YzcxMDAzMDJhMmQ3MjhjNGY1NCIsICJwYXJ0eV9jYXRlZ29yeSI6IDAsICJwaGFzZSI6IDIsICJhdmF0YXIiOiAiIiwgInRydWVfYXZhdGFyIjogIiIsICJyb2xlX2lkIjogMSwgInBhcnR5X2JyYW5jaCI6ICIiLCAic3NvX2lkIjogIiIsICJpc192aXJ0dWFsIjogMCwgImlzX2ZpcnN0X2xvZ2luIjogMCwgInN0YXRlX2lkIjogNTE3MTYsICJzZXNzaW9uIjogIjAyMjg0OTRlLWQ2N2EtNDVkMi1iOGJhLTc4MmVhZmNhNWI4ZSIsICJ0b2tlbiI6IDE3NzkyMDE2Mzh9|d794285131bf4d4e77bba16b249554209ccd151537822c99a4cc01e1ef88c2df',
+        'token': 'eyJ0eXAiOiJqd3QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozMjk0OCwic3RhdGUiOjEsInVzZXJfc2lkIjoiMjAyNDEzMDEwMjAyNSIsInVzZXJfbmFtZSI6Ilx1NWMzOVx1ODIyYSIsInVzZXJfcHdkIjoiZTc0NjM0MGU1OWY3ZmUxY2VhYzc2YzcxMDAzMDJhMmQ3MjhjNGY1NCIsInBhcnR5X2NhdGVnb3J5IjowLCJwaGFzZSI6MiwiYXZhdGFyIjoiIiwidHJ1ZV9hdmF0YXIiOiIiLCJyb2xlX2lkIjoxLCJwYXJ0eV9icmFuY2giOiIiLCJzc29faWQiOiIiLCJpc192aXJ0dWFsIjowLCJpc19maXJzdF9sb2dpbiI6MCwic3RhdGVfaWQiOjUxNzE2LCJzZXNzaW9uIjoiMDIyODQ5NGUtZDY3YS00NWQyLWI4YmEtNzgyZWFmY2E1YjhlIiwidG9rZW4iOjE3NzkyMDE2MzgsImV4cCI6MTc3OTIwMzQzOH0.YdZrBDfWXN4aaQqLLoIF_MR6A3HajSOhgmmPyeOLLvM',
     }
 
     player = JJFZAutoPlayer(cookies=cookies)
-    player.load_questions()
-    player.save_result(player.radio_df.reset_index(drop=True), player.checkbox_df.reset_index(drop=True),
-                       player.yes_or_no_df.reset_index(drop=True), player.gap_filling_df.reset_index(drop=True))
-    player.save_result_parquet(player.radio_df.reset_index(drop=True), player.checkbox_df.reset_index(drop=True),
-                               player.yes_or_no_df.reset_index(drop=True), player.gap_filling_df.reset_index(drop=True))
+    # player.finish_lessons()
+    # player.load_questions()
+    # player.save_result(player.radio_df.reset_index(drop=True), player.checkbox_df.reset_index(drop=True),
+    #                    player.yes_or_no_df.reset_index(drop=True), player.gap_filling_df.reset_index(drop=True))
+    # player.save_result_parquet(player.radio_df.reset_index(drop=True), player.checkbox_df.reset_index(drop=True),
+    #                            player.yes_or_no_df.reset_index(drop=True), player.gap_filling_df.reset_index(drop=True))
     # failed_lessons = player.get_lessons_and_save(output_dir='./temp')
     # player.get_required_lessons(lesson_id=517)
     # print(f"失败的课程: {failed_lessons}")
