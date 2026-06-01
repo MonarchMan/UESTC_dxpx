@@ -1,11 +1,14 @@
 ﻿# 电子科技大学（UESTC）积极分子培训脚本
 ## All you need is a Python script!
 2025.11.21 经过测试，脚本顺利运行，并完成所有课程的观看任务。后续会考虑加入发展对相关视频的支持。<br>
+2026.05.20 对本期积极分子课程再次进行测试，顺利完成所有任务。<br>
+2026.06.01 增加发展对象的视频课程、考试支持，并完成测试。<br>
 
 ## 使用方法
 ### 1. 安装依赖
-通常情况下编译器已经预装了所需依赖，如`requests`等。如果未安装，请根据提示安装。
-### 2. 修改Cookies
+通常情况下编译器已经预装了所需依赖，如`requests`、`pandas`、`pypinyin`等。如果未安装，请根据提示安装。
+
+### 2. 修改 Cookies
 #### 2.1 复制请求
 登录自己的积极分子账号后，打开浏览器开发者工具（如Chrome的F12或Edge的F12），切换到Network（网络）标签页。
 刷新页面，找到第一个请求，复制其Cookies值。<br>
@@ -15,26 +18,100 @@
 之后，转到网站：(https://curlconverter.com/python/)
 ，将复制的cURL命令粘贴到网站中。将生成的Python代码（选中部分）复制到脚本中。<br>
 ![curlconverter.com操作示例](images/curl_converter.png)<br>
-#### 2.3 修改jjfz,py脚本Cookies
-将刚刚复制的cookies代码替换到脚本的main函数中的cookies中，即图中红框里的大括号部分。<br>
+#### 2.3 修改脚本 Cookies
+将刚刚复制的 cookies 代码替换到对应脚本的 `cookies` 中。积极分子修改 `dxpx/jjfz/jjfz.py`、`dxpx/jjfz/exam.py`，发展对象修改 `dxpx/fzdx/fzdx.py`、`dxpx/fzdx/exam.py`。<br>
 ![修改cookies示例](images/code.png)<br>
-#### 2.4 运行jjfz.py脚本，坐等完成
-在pycharm或者其他python编辑器中运行jjfz.py脚本的get_lessons_and_save函数，也可以在命令行中运行，坐等完成。
+#### 2.4 运行脚本
+所有命令都建议在项目根目录运行，也就是本 `readme.md` 所在目录。
+
+### 3. 积极分子（jjfz）
+#### 3.1 初始化课程信息
+获取课程信息并保存到默认目录：
+```bash
+python dxpx\jjfz\jjfz.py --init
+```
+
+指定课程信息保存目录：
+```bash
+python dxpx\jjfz\jjfz.py --init --output-dir dxpx/jjfz/temp
+```
+
+#### 3.2 更新本地题库
+从已完成的综合考试和章节测试记录中抓取题目，去重后更新本地题库：
+```bash
+python dxpx\jjfz\jjfz.py --update
+```
+
+#### 3.3 自动完成考试
+综合提升考试，默认模式为 `end`：
+```bash
+python dxpx\jjfz\exam.py --mode end --echos 30
+```
+
+章节测试：
+```bash
+python dxpx\jjfz\exam.py --mode lesson --echos 30
+```
+
+`--echos` 表示循环执行次数，可根据需要调整。
+
+### 4. 发展对象（fzdx）
+#### 4.1 初始化课程信息
+获取课程信息并保存到默认目录：
+```bash
+python dxpx\fzdx\fzdx.py --init
+```
+
+指定课程信息保存目录：
+```bash
+python dxpx\fzdx\fzdx.py --init --output-dir dxpx/fzdx/temp
+```
+
+#### 4.2 更新本地题库
+从已完成的考试记录中抓取题目，去重后更新本地题库：
+```bash
+python dxpx\fzdx\fzdx.py --update
+```
+
+#### 4.3 自动完成考试
+```bash
+python dxpx\fzdx\exam.py --echos 10
+```
+
+`--echos` 表示循环执行次数，可根据需要调整。
 
 ## 主要功能
 ### 1. 视频刷课
-**jjfz.py** 运行 get_lessons_and_save() 方法，即可获取所有课程的信息。
+运行 `jjfz.py` 或 `fzdx.py` 的 `--init`，即可获取所有课程的信息，并记录课程资源参数。
+
 ### 2. 章节测试刷题
-**exam.py** 运行 finish_all_lesson_exams() 方法，即可完成所有章节测试。
-### 3. 综合提升考试刷题
-**exam.py** 运行 finish_all_exams() 方法，即可完成所有综合提升考试。
+积极分子脚本支持章节测试，运行：
+```bash
+python dxpx\jjfz\exam.py --mode lesson --echos 30
+```
+
+### 3. 综合考试刷题
+积极分子综合考试：
+```bash
+python dxpx\jjfz\exam.py --mode end --echos 30
+```
+
+发展对象考试：
+```bash
+python dxpx\fzdx\exam.py --echos 10
+```
+
 ### 4. 获取系统题库
 建议先运行十次以上自动刷题，以在系统上留下考试记录。脚本会通过查询考试记录，获取所有考题，然后去重、按拼音排序、分类（单选、多选、判断、填空）。<br>
-主要提供两种方式获取题库：
-1. 在考试记录样本量很少的情况下，**jjfz.py** 运行get_exam_list()方法获取综合提升考试题目，运行get_lesson_exam_list()获取章节测试题目，
-之后运行collect_unique_questions方法，处理所有题目，并设置save参数为true，使其保存文件到本地。
-2. 在考试记录样本量足够的情况下，**exam.py** 运行finish_many_exams()开启多轮综合提升考试刷题，运行finish_many_lesson_exams()开启
-多轮章节测试刷题， 脚本会从本地导入已有考题，再将新获取的错题（错题即为题库中没有的数据）添加到本地题库中。
+更新题库可以直接运行：<br>
+**积极分子：**
+```bash
+python dxpx\jjfz\jjfz.py --update
+```
+**发展对象：**
+```bash
+python dxpx\fzdx\fzdx.py --update
+```
 
 ## 运行效果
 ### 1. 视频刷课

@@ -1,5 +1,5 @@
-﻿from jjfz import JJFZAutoPlayer
-from exam import Exam
+﻿from dxpx.jjfz.jjfz import JJFZAutoPlayer
+from dxpx.jjfz.exam import Exam
 
 def main():
     cookies = {
