@@ -1,12 +1,21 @@
 ﻿import pandas as pd
+import argparse
 import requests
 import re
-import numpy as np
-from jjfz import JJFZAutoPlayer
+import sys
+from pathlib import Path
 
-class Exam:
+if __package__ is None or __package__ == '':
+    sys.path.append(str(Path(__file__).resolve().parents[2]))
+
+from dxpx.common.exam import BaseExam
+from dxpx.jjfz.jjfz import JJFZAutoPlayer
+
+class Exam(BaseExam):
+    player_cls = JJFZAutoPlayer
+
     def __init__(self, cookies):
-        self.cookies = cookies
+        super().__init__(cookies)
         self.headers = {
             'Accept': 'text/html, */*; q=0.01',
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
@@ -79,6 +88,7 @@ class Exam:
             rid = 0
         return rid
 
+<<<<<<< HEAD:exam.py
     def finish_exam(self, return_new: bool=False, player: JJFZAutoPlayer = None):
         if player is None:
             player = JJFZAutoPlayer(self.cookies)
@@ -161,6 +171,8 @@ class Exam:
         if len(new_radios) > 0:
             player.update_questions(new_radios, new_checkboxes, new_yes_or_nos, new_gap_fillings)
 
+=======
+>>>>>>> 680a3b1 (Refactor exam and player flows for jjfz and fzdx):dxpx/jjfz/exam.py
     def start_lesson_exam(self, lesson_id: int):
         params = {
             'lesson_id': lesson_id,
@@ -289,7 +301,15 @@ class Exam:
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
     def finish_all_lesson_exams(self, player: JJFZAutoPlayer=None):
+<<<<<<< HEAD:exam.py
         lesson_ids = [567, 568, 569, 570, 571, 572, 573, 574, 575, 576, 577]
+=======
+        lesson_dir = player.lesson_dir if player is not None else JJFZAutoPlayer.lesson_dir
+        lesson_path = Path(lesson_dir) / 'lessons.json'
+        lessons = JJFZAutoPlayer.load_lessons(str(lesson_path))
+        lesson_ids = [int(lesson['lesson_id']) for lesson in lessons]
+
+>>>>>>> 680a3b1 (Refactor exam and player flows for jjfz and fzdx):dxpx/jjfz/exam.py
         new_radios, new_checkboxes, new_yes_or_nos = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
         for lesson_id in lesson_ids:
             radios, checkboxes, yes_or_nos = self.finish_lesson_exam(lesson_id, return_new=True, player=player)
@@ -312,45 +332,17 @@ class Exam:
             player.update_questions(new_radios, new_checkboxes, new_yes_or_nos, pd.DataFrame())
 
 
-    @staticmethod
-    def extract_question(html: str):
-        exam_label_pattern = r'<div[^>]*class="exam_label_btn[^"]*"[^>]*data-val="([^"]*)"'
-        qid_match = re.search(exam_label_pattern, html)
-        if qid_match:
-            qid = int(qid_match.group(1))
-        else:
-            qid = 0
-        title_pattern = r'<h2[^>]*>(.*?)</h2>'
-        title_match = re.search(title_pattern, html)
-        if title_match:
-            # 先去除开头数字，再处理空白字符
-            cleaned_title = re.sub(r'^\d+.\s*', '', title_match.group(1))
-            title = cleaned_title
-        else:
-            title = 'No title found'
-
-        # 获取选项
-        options_pattern = r'<label[^>]*>(.*?)</label>'
-        labels = re.findall(options_pattern, html, re.DOTALL)
-        options = []
-        for label_content in labels:
-            # 从 input 标签提取 answer_id
-            answer_id_match = re.search(r'value="(\d+)"', label_content)
-            if answer_id_match:
-                answer_id = answer_id_match.group(1)
-            else:
-                answer_id = ''
-            # 移除 input 标签
-            option_text = re.sub(r'<input[^>]*/?>', '', label_content)
-            # 清理空白字符
-            option_text = re.sub(r'\s+', ' ', option_text.strip())
-            if option_text:
-                options.append((option_text, answer_id))
-
-        return title, options, qid
-
-
 def main():
+    parser = argparse.ArgumentParser(description='积极分子考试工具')
+    parser.add_argument(
+        '--mode',
+        choices=['end', 'lesson'],
+        default='end',
+        help='运行模式：end 为综合考试，lesson 为章节测试',
+    )
+    parser.add_argument('--echos', type=int, default=30, help='设置批量执行次数')
+    args = parser.parse_args()
+
     cookies = {
         '_xsrf': '2|50c39dbf|59a5a9c2e1d8bd270abeda544ba39aa9|1779195541',
         'is_first': '"2|1:0|10:1779201638|8:is_first|4:MA==|37f1419d1d5829322f6a042ff2decc441134808aae2215ec275ba183ef0b2f0e"',
@@ -360,6 +352,7 @@ def main():
     }
 
     exam = Exam(cookies=cookies)
+<<<<<<< HEAD:exam.py
     # for i in range(30):
     #     print(f"第{i+1}次考试")
     #     exam.finish_exam()
@@ -370,6 +363,12 @@ def main():
     #     exam.finish_all_lesson_exams()
     # exam.finish_many_lesson_exams(echos=50)
     exam.finish_many_exams(echos=10)
+=======
+    if args.mode == 'end':
+        exam.finish_many_exams(echos=args.echos)
+    else:
+        exam.finish_many_lesson_exams(echos=args.echos)
+>>>>>>> 680a3b1 (Refactor exam and player flows for jjfz and fzdx):dxpx/jjfz/exam.py
 
 
 if __name__ == '__main__':
