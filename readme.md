@@ -85,11 +85,6 @@ python dxpx\fzdx\exam.py --echos 10
 运行 `jjfz.py` 或 `fzdx.py` 的 `--init`，即可获取所有课程的信息，并记录课程资源参数。
 
 ### 2. 章节测试刷题
-<<<<<<< HEAD
-**exam.py** 运行 finish_many_lesson_exams() 方法，即可完成所有章节测试，支持多轮刷题。
-### 3. 综合提升考试刷题
-**exam.py** 运行 finish_many_exams() 方法，即可完成所有综合提升考试，支持多轮刷题。
-=======
 积极分子脚本支持章节测试，运行：
 ```bash
 python dxpx\jjfz\exam.py --mode lesson --echos 30
@@ -106,7 +101,6 @@ python dxpx\jjfz\exam.py --mode end --echos 30
 python dxpx\fzdx\exam.py --echos 10
 ```
 
->>>>>>> 680a3b1 (Refactor exam and player flows for jjfz and fzdx)
 ### 4. 获取系统题库
 建议先运行十次以上自动刷题，以在系统上留下考试记录。脚本会通过查询考试记录，获取所有考题，然后去重、按拼音排序、分类（单选、多选、判断、填空）。<br>
 更新题库可以直接运行：<br>
@@ -128,7 +122,7 @@ python dxpx\fzdx\fzdx.py --update
 ![运行效果](images/chapter_test.png)
 
 ## 其他脚本
-[研究生英语-学堂在线刷题脚本](mooc/english.py)，题目和答案见[研究生英语-学堂在线题库](temp/mooc/english.txt)。
+[研究生英语-学堂在线刷题脚本](mooc/english.py)，题目和答案见[研究生英语-学堂在线题库](doc/mooc/english.txt)。
 
 ## 注意事项
 1. 请确保自己的积极分子账号已登录，且Cookies值已正确复制到脚本中。

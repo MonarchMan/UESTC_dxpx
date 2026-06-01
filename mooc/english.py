@@ -78,7 +78,7 @@ class English:
         return sorted_questions
 
     @staticmethod
-    def save(questions: list, output_dir="../temp/mooc"):
+    def save(questions: list, output_dir="../doc/mooc"):
         # 确保输出目录存在
         os.makedirs(output_dir, exist_ok=True)
         # 构建完整文件路径
