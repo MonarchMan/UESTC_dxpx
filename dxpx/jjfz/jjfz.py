@@ -1,4 +1,4 @@
-﻿import json
+import json
 
 import argparse
 import requests
@@ -11,6 +11,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 if __package__ is None or __package__ == '':
     sys.path.append(str(Path(__file__).resolve().parents[2]))
+
+from dxpx.common.cookies import load_cookies
 
 from dxpx.common.player import BaseAutoPlayer
 
@@ -348,19 +350,24 @@ class JJFZAutoPlayer(BaseAutoPlayer):
 
 def main():
     parser = argparse.ArgumentParser(description='积极分子学习与题库工具')
+    parser.add_argument(
+        '--cookies-file', default='cookies.json',
+        help='cookies JSON 文件路径（默认 cookies.json）',
+    )
     parser.add_argument('--init', action='store_true', help='获取课程列表并保存')
     parser.add_argument('--output-dir', default=JJFZAutoPlayer.lesson_dir, help='设置课程列表保存目录')
     parser.add_argument('--update', action='store_true', help='从已完成考试结果更新题库')
     args = parser.parse_args()
 
-    cookies = {
-        'first_lesson_study': '1',
-        '_xsrf': '2|95603c0c|6a5e80cd340c5747d2f5683bc6a566b2|1763696561',
-        'menu_open': 'false',
-        'is_first': '"2|1:0|10:1764071481|8:is_first|4:MA==|145c6b85b9a55bced47d1948924c5d4885c292c248811b4143c5af37960714b1"',
-        'token': 'eyJ0eXAiOiJqd3QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozMDczMiwic3RhdGUiOjEsInVzZXJfc2lkIjoiMjAyNTIxMTEwNDExIiwidXNlcl9uYW1lIjoiXHU1ZjZkXHU1YjUwXHU2MDUyIiwidXNlcl9wd2QiOiJiYWNiYmMxNTc0ZTkxMzY3NzhkMmFkMzQ1ZDhhYjBlMWY4MGE3ODlhIiwicGFydHlfY2F0ZWdvcnkiOjAsInBoYXNlIjoyLCJhdmF0YXIiOiIiLCJ0cnVlX2F2YXRhciI6IiIsInJvbGVfaWQiOjEsInBhcnR5X2JyYW5jaCI6IiIsInNzb19pZCI6IiIsImlzX3ZpcnR1YWwiOjAsImlzX2ZpcnN0X2xvZ2luIjowLCJzdGF0ZV9pZCI6NDc5NTQsInNlc3Npb24iOiIyM2RhOTYzYy02NTY0LTQ5NjUtOTFmZi1lNTNhOTRhMjg5MTciLCJ0b2tlbiI6MTc2NDA3MTQ4MSwiZXhwIjoxNzY0MDczMjgxfQ.NPHzPdG0EXyST2bXqt4Y_Pr95ijcnUYFOm0pJFX6lyM',
-        'ua_id': '"2|1:0|10:1764086656|5:ua_id|524:eyJ1c2VyX2lkIjogMzA3MzIsICJzdGF0ZSI6IDEsICJ1c2VyX3NpZCI6ICIyMDI1MjExMTA0MTEiLCAidXNlcl9uYW1lIjogIlx1NWY2ZFx1NWI1MFx1NjA1MiIsICJ1c2VyX3B3ZCI6ICJiYWNiYmMxNTc0ZTkxMzY3NzhkMmFkMzQ1ZDhhYjBlMWY4MGE3ODlhIiwgInBhcnR5X2NhdGVnb3J5IjogMCwgInBoYXNlIjogMiwgImF2YXRhciI6ICIiLCAidHJ1ZV9hdmF0YXIiOiAiIiwgInJvbGVfaWQiOiAxLCAicGFydHlfYnJhbmNoIjogIiIsICJzc29faWQiOiAiIiwgImlzX3ZpcnR1YWwiOiAwLCAiaXNfZmlyc3RfbG9naW4iOiAwLCAic3RhdGVfaWQiOiA0Nzk1NCwgInNlc3Npb24iOiAiMjNkYTk2M2MtNjU2NC00OTY1LTkxZmYtZTUzYTk0YTI4OTE3IiwgInRva2VuIjogMTc2NDA3MTQ4MX0=|0a9cbcb345d2d47f07cddea9e1d0b942c5744a1a13de9ad0b2b221140c4dd827"',
-    }
+    try:
+        cookies = load_cookies(args.cookies_file)
+    except FileNotFoundError:
+        print(f"❌ 找不到 cookies 文件: {args.cookies_file}")
+        print("   请从 cookies.example.json 复制一份，填入你的登录信息")
+        sys.exit(1)
+    except ValueError as e:
+        print(f"❌ {e}")
+        sys.exit(1)
 
     player = JJFZAutoPlayer(cookies=cookies)
     if args.init:

@@ -1,4 +1,4 @@
-﻿import pandas as pd
+import pandas as pd
 import argparse
 import requests
 import re
@@ -8,6 +8,7 @@ from pathlib import Path
 if __package__ is None or __package__ == '':
     sys.path.append(str(Path(__file__).resolve().parents[2]))
 
+from dxpx.common.cookies import load_cookies
 from dxpx.common.exam import BaseExam
 from dxpx.jjfz.jjfz import JJFZAutoPlayer
 
@@ -246,6 +247,10 @@ class Exam(BaseExam):
 def main():
     parser = argparse.ArgumentParser(description='积极分子考试工具')
     parser.add_argument(
+        '--cookies-file', default='cookies.json',
+        help='cookies JSON 文件路径（默认 cookies.json）',
+    )
+    parser.add_argument(
         '--mode',
         choices=['end', 'lesson'],
         default='end',
@@ -254,13 +259,15 @@ def main():
     parser.add_argument('--echos', type=int, default=30, help='设置批量执行次数')
     args = parser.parse_args()
 
-    cookies = {
-    'first_lesson_study': '1',
-    'is_first': '"2|1:0|10:1781083009|8:is_first|4:MA==|d11cbcb7a4c86be6e14425dd618cd12d208e89f4d4f35026a444b7d21711a639"',
-    'token': 'eyJ0eXAiOiJqd3QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjozMzcyMCwic3RhdGUiOjEsInVzZXJfc2lkIjoiMjAyNTA4MDkwODAwMyIsInVzZXJfbmFtZSI6Ilx1OTY0OFx1NjYwZVx1OGZkYyIsInVzZXJfcHdkIjoiZWEzNzc5MjhjZDIyM2Q3ZWMxYjU0NTk0MWI5OWEzMGFkZWU2Njk4ZiIsInBhcnR5X2NhdGVnb3J5IjowLCJwaGFzZSI6MiwiYXZhdGFyIjoiIiwidHJ1ZV9hdmF0YXIiOiIiLCJyb2xlX2lkIjoxLCJwYXJ0eV9icmFuY2giOiIiLCJzc29faWQiOiIiLCJpc192aXJ0dWFsIjowLCJpc19maXJzdF9sb2dpbiI6MCwic3RhdGVfaWQiOjUzMDAwLCJzZXNzaW9uIjoiNTlhNDIwZDItN2RjNC00Zjc5LTkxYmQtMjdiOTcxODRiZDZiIiwidG9rZW4iOjE3ODEwODMwMDksImV4cCI6MTc4MTA4NDgwOX0.uOcWtYMPNHKXpfv-qmrOmpFeKcIRlHBONHrvRTBXzrE',
-    '_xsrf': '2|4caef94d|420e6f4582d982df0c8a673f38af28cc|1781078380',
-    'ua_id': '2|1:0|10:1781084985|5:ua_id|524:eyJ1c2VyX2lkIjogMzM3MjAsICJzdGF0ZSI6IDEsICJ1c2VyX3NpZCI6ICIyMDI1MDgwOTA4MDAzIiwgInVzZXJfbmFtZSI6ICJcdTk2NDhcdTY2MGVcdThmZGMiLCAidXNlcl9wd2QiOiAiZWEzNzc5MjhjZDIyM2Q3ZWMxYjU0NTk0MWI5OWEzMGFkZWU2Njk4ZiIsICJwYXJ0eV9jYXRlZ29yeSI6IDAsICJwaGFzZSI6IDIsICJhdmF0YXIiOiAiIiwgInRydWVfYXZhdGFyIjogIiIsICJyb2xlX2lkIjogMSwgInBhcnR5X2JyYW5jaCI6ICIiLCAic3NvX2lkIjogIiIsICJpc192aXJ0dWFsIjogMCwgImlzX2ZpcnN0X2xvZ2luIjogMCwgInN0YXRlX2lkIjogNTMwMDAsICJzZXNzaW9uIjogIjU5YTQyMGQyLTdkYzQtNGY3OS05MWJkLTI3Yjk3MTg0YmQ2YiIsICJ0b2tlbiI6IDE3ODEwODMwMDl9|411789a2731487a009e19b18273a6af035fe850a371570d7616542b1b7746438',
-    }
+    try:
+        cookies = load_cookies(args.cookies_file)
+    except FileNotFoundError:
+        print(f"❌ 找不到 cookies 文件: {args.cookies_file}")
+        print("   请从 cookies.example.json 复制一份，填入你的登录信息")
+        sys.exit(1)
+    except ValueError as e:
+        print(f"❌ {e}")
+        sys.exit(1)
 
     exam = Exam(cookies=cookies)
     if args.mode == 'end':
