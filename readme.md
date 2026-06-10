@@ -3,6 +3,7 @@
 2025.11.21 经过测试，脚本顺利运行，并完成所有课程的观看任务。后续会考虑加入发展对象相关的支持。<br>
 2026.05.20 对本期积极分子课程再次进行测试，顺利完成所有任务。<br>
 2026.06.01 增加发展对象的视频课程、考试支持，并完成测试。<br>
+2026.06.10 调整 jjfz.py 命令：--init 只采集课程信息不再自动提交；新增 --submit LESSON_ID / --all 走两步法（/jjfz/lesson/video 拿 v_id 种子 → /jjfz/play 拿完整对）实际提交观看记录。<br>
 
 ## 使用方法
 ### 1. 安装依赖
@@ -42,6 +43,9 @@ python dxpx\jjfz\jjfz.py --init
 python dxpx\jjfz\jjfz.py --init --output-dir dxpx/jjfz/temp
 ```
 
+> `--init` 只**采集**课程信息（走两步法：`/jjfz/lesson/video` 拿 v_id 种子 → `/jjfz/play` 拿完整的 `(video_id, resource_id)` 对），并保存到 `lessons.json`。
+> **不会**自动提交观看记录——提交走 3.4。
+
 #### 3.2 更新本地题库
 从已完成的综合考试和章节测试记录中抓取题目，去重后更新本地题库：
 ```bash
@@ -60,6 +64,25 @@ python dxpx\jjfz\exam.py --mode lesson --echos 30
 ```
 
 `--echos` 表示循环执行次数，可根据需要调整。
+
+#### 3.4 提交观看记录
+仅提交指定 lesson：
+```bash
+python dxpx\jjfz\jjfz.py --submit 567
+```
+
+提交所有 lesson（`--submit` 和 `--all` 互斥）：
+```bash
+python dxpx\jjfz\jjfz.py --all
+```
+
+与 `--init` 联动使用：
+```bash
+python dxpx\jjfz\jjfz.py --init           # 1. 先采集保存
+python dxpx\jjfz\jjfz.py --all            # 2. 再批量提交
+```
+
+`--all` 适用于中途中断后重跑某个 lesson，其余 lesson 不会重复提交。
 
 ### 4. 发展对象（fzdx）
 #### 4.1 初始化课程信息
@@ -88,7 +111,11 @@ python dxpx\fzdx\exam.py --echos 10
 
 ## 主要功能
 ### 1. 视频刷课
-运行 `jjfz.py` 或 `fzdx.py` 的 `--init`，即可获取所有课程的信息，并记录课程资源参数。
+积极分子走两步：
+1. `python dxpx\jjfz\jjfz.py --init` —— 采集课程信息并保存到 `lessons.json`（不提交）
+2. `python dxpx\jjfz\jjfz.py --all` 或 `--submit LESSON_ID` —— 实际提交观看记录
+
+发展对象（fzdx）的 `--init` 仍保持原有行为（采集+提交一体）。
 
 ### 2. 章节测试刷题
 积极分子脚本支持章节测试，运行：
