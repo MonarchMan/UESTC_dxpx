@@ -14,13 +14,19 @@
 刷新页面，找到第一个请求，复制其Cookies值。<br>
 如果你不会操作，以谷歌浏览器为例，右键第一个请求，选择“Copy"，再点击"Copy as cURL"。<br>
 ![谷歌浏览器开发者工具操作示例](images/copy_url_with_bash.png)<br>
-#### 2.2 转换为Python代码
-之后，转到网站：(https://curlconverter.com/python/)
-，将复制的cURL命令粘贴到网站中。将生成的Python代码（选中部分）复制到脚本中。<br>
+#### 2.2 转换为JSON代码
+之后，转到网站：(https://curlconverter.com/json/)
+，将复制的cURL命令粘贴到网站中。将生成的JSON代码（选中部分）复制。<br>
 ![curlconverter.com操作示例](images/curl_converter.png)<br>
-#### 2.3 修改脚本 Cookies
-将刚刚复制的 cookies 代码替换到对应脚本的 `cookies` 中。积极分子修改 `dxpx/jjfz/jjfz.py`、`dxpx/jjfz/exam.py`，发展对象修改 `dxpx/fzdx/fzdx.py`、`dxpx/fzdx/exam.py`。<br>
-![修改cookies示例](images/code.png)<br>
+#### 2.3 保存到 cookies.json
+将刚刚复制的 cookies 字段保存到项目根目录的 `cookies.json` 中。
+
+> 如果不想用默认路径 `cookies.json`，可以通过 `--cookies-file` 指定其他位置：
+> ```bash
+> python dxpx/jjfz/jjfz.py --init --cookies-file /path/to/your/cookies.json
+> ```
+> 这样就**不需要**再手动改任何脚本里的代码了。
+
 #### 2.4 运行脚本
 所有命令都建议在项目根目录运行，也就是本 `readme.md` 所在目录。
 
@@ -125,7 +131,7 @@ python dxpx\fzdx\fzdx.py --update
 [研究生英语-学堂在线刷题脚本](mooc/english.py)，题目和答案见[研究生英语-学堂在线题库](doc/mooc/english.txt)。
 
 ## 注意事项
-1. 请确保自己的积极分子账号已登录，且Cookies值已正确复制到脚本中。
+1. 请确保自己的积极分子账号已登录，且 `cookies.json` 中的值已正确更新。`_xsrf` 字段必填，缺了启动时会报错。
 2. 脚本运行完成后，会在控制台输出完成信息。
 3. 使用刷题功能时，由于做题时系统给出的题目中空格等符号的数量可能与本地题库不一致，导致判断错题的逻辑错误，但是会保证你能得到不错的分数。
 4. **本项目仅供技术学习交流,为此引出的任何与技术无关的问题与作者本人无关**
