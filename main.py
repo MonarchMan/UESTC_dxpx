@@ -8,4 +8,8 @@ def main():
     player = JJFZAutoPlayer(cookies=cookies)
     player.load_questions()
     jjfz_exam = Exam(cookies=cookies)
-    jjfz_exam
+    jjfz_exam.finish_all_lesson_exams(player=player)
+
+
+if __name__ == '__main__':
+    main()
