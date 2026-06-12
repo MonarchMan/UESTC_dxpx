@@ -234,32 +234,25 @@ class JJFZAutoPlayer(BaseAutoPlayer):
                 return False
         return False
 
-    def get_required_lessons(self, lesson_id: int) -> list[int]:
+    def get_required_lessons(self, lesson_id: int, page: int = 1) -> list[int]:
         """
-        从 /jjfz/lesson/video 拿到必修课的 v_id 列表（不完整，仅作“种子”）。
-        ⚠️ 该接口返回数据不全——不含 r_id，要拿完整的 (v_id, r_id) 对，
-        需对每个 v_id 调 get_lesson_v_resource_id(video_id) 走 /jjfz/play 播放页。
+        获取课程的必修课程列表
         :param lesson_id: 课程ID
-        :return: v_id 列表（int）
+        :param page: 页码
+        :return:
+        必修课程视频列表，每个元素为(video_id, resource_id)元组
+        微课件或专家讲座的video_id列表
+        总页数
         """
         params = {
             'lesson_id': lesson_id,
-            'required': 1
+            'required': 1,
+            'page': page,
         }
 
         url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/video'
-        response = requests.get(url=url, cookies=self.cookies, headers=self.headers, params=params)
-        # 匹配指向 /jjfz/play 的 <a href="...v_id=N...">
-        # \b 防止误匹配 v_ider 之类
-        # 两个负向先行一起排除带 title= 属性的 <a> 标签：
-        #   1) <a title=...>  —— title 作为首个属性（<a\s 后紧跟 title=）
-        #   2) <a ... title=...>  —— title 在中间或末尾（前有空白）
-        # 不会误伤 data-title= 这类“title 作为名字一部分”的属性
-        pattern = re.compile(
-            r'<a\s(?!title=)(?![^>]*\stitle=)[^>]*href="[^"]*\bv_id=(\d+)[^"]*"',
-            re.DOTALL,
-        )
-        return [int(v) for v in pattern.findall(response.text)]
+        response = requests.get(url=url, params=params, cookies=self.cookies, headers=self.headers)
+        return self.extract_required_lessons_info(response.text)
 
     def get_lesson_r_id(self, video_id: int, resource_id: int, page: int = 1) -> int:
         """
@@ -449,50 +442,6 @@ class JJFZAutoPlayer(BaseAutoPlayer):
             r_ids=r_ids, lesson_r_ids=lesson_r_ids)
         self.update_questions(new_raios_df, new_checkboxes_df, new_yes_or_nos_df, new_gap_fillings_df)
 
-    def get_lessons_and_save(self, output_dir=None, save=False):
-        """
-        获取课程列表并保存到 lessons.json。
-
-        这是 --init 走的路径，**只收集不提交**：采集所有 lesson 的 (video_id, resource_id)
-        并落盘。提交观看记录的 POST 操作走 submit_lesson_records（--submit/--all）。
-
-        两步法：
-            1) 从 /jjfz/lesson/video 拿 v_id 种子（可能不完整）
-            2) 对每个 v_id 种子走 /jjfz/play 拿**完整**的 (v_id, r_id) 对
-
-        :param output_dir: lessons.json 保存目录，默认 self.lesson_dir
-        :param save: 是否写入磁盘
-        :return: lessons 列表（每个元素 {'lesson_id': ..., 'id_params': [...]}）
-        """
-        output_dir = output_dir or self.lesson_dir
-        lesson_ids = self.get_lessons()
-        lessons = []
-
-        for lesson_id in lesson_ids:
-            id_params = []
-            seen_pairs = set()
-
-            v_id_seeds = self.get_required_lessons(lesson_id)
-
-            for v_id in v_id_seeds:
-                for video_id, resource_id in self.get_lesson_v_resource_id(v_id):
-                    if (video_id, resource_id) in seen_pairs:
-                        continue
-                    seen_pairs.add((video_id, resource_id))
-                    id_params.append({'video_id': video_id, 'resource_id': resource_id})
-            print(f"课程{lesson_id}的相关参数已获取")
-
-            lessons.append({
-                'lesson_id': lesson_id,
-                'id_params': id_params,
-            })
-
-        if save:
-            os.makedirs(output_dir, exist_ok=True)
-            with open(os.path.join(output_dir, 'lessons.json'), 'w', encoding='utf-8') as f:
-                json.dump(lessons, f, ensure_ascii=False, indent=4)
-            print(f"lessons数据已保存到{output_dir}/lessons.json文件")
-        return lessons
 
 def main():
     parser = argparse.ArgumentParser(description='积极分子学习与题库工具')
@@ -521,9 +470,8 @@ def main():
 
     player = JJFZAutoPlayer(cookies=cookies)
     if args.init:
-        lessons = player.get_lessons_and_save(output_dir=args.output_dir, save=True)
-        total = sum(len(l['id_params']) for l in lessons)
-        print(f"--init 完成：采集 {len(lessons)} 个 lesson, 共 {total} 个视频（未提交）")
+        failed_lessons, success_lessons = player.get_lessons_and_save(output_dir=args.output_dir, save=True)
+        print(f"--init 完成：采集 {len(success_lessons)} 个 lesson, 共 {len(failed_lessons)} 个视频（未提交）")
     if args.update:
         player.update_from_exam_results()
 

@@ -2,7 +2,7 @@ import html
 import json
 import os
 import re
-from typing import Optional
+from typing import Optional, Tuple, List
 
 import numpy as np
 import pandas as pd
@@ -72,7 +72,16 @@ class BaseAutoPlayer:
             total_pages = int(pages_match.group(1))
         return id_pairs, rest_ids, total_pages
 
-    def get_lessons_and_save(self, output_dir: Optional[str] = None, save=False):
+    def get_lessons_and_save(self, output_dir: Optional[str] = None, save=False) -> Tuple[List, List]:
+        """
+        获取课程列表并保存到 lessons.json。
+        两步法：
+            1) 从 /jjfz/lesson/video 拿 v_id 种子（可能不完整）
+            2) 对每个 v_id 种子走 /jjfz/play 拿**完整**的 (v_id, r_id) 对
+        :param output_dir: lessons.json 保存目录，默认 self.lesson_dir
+        :param save: 是否写入磁盘
+        :return: 收集失败的课程信息列表；已收集的 lessons 列表（每个元素 {'lesson_id': ..., 'id_params': [...]}）
+        """
         output_dir = output_dir or self.lesson_dir
         lesson_ids = self.get_lessons()
         lessons = []
@@ -134,7 +143,7 @@ class BaseAutoPlayer:
             with open(os.path.join(output_dir, 'lessons.json'), 'w', encoding='utf-8') as f:
                 json.dump(lessons, f, ensure_ascii=False, indent=4)
             print(f"lessons数据已保存到{output_dir}/lessons.json文件")
-        return failed_list
+        return failed_list, lessons
 
     def finish_lessons(self, lesson_path: Optional[str] = None) -> list:
         lesson_path = lesson_path or os.path.join(self.lesson_dir, 'lessons.json')

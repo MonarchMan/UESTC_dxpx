@@ -184,8 +184,8 @@ def main():
 
     player = FZDXAutoPlayer(cookies=cookies)
     if args.init:
-        failed_list = player.get_lessons_and_save(output_dir=args.output_dir, save=True)
-        print(failed_list)
+        failed_list, success_list = player.get_lessons_and_save(output_dir=args.output_dir, save=True)
+        print(f"--init 完成：采集 {len(success_list)} 个 lesson, 共 {len(failed_list)} 个视频（未提交）")
     if args.update:
         player.update_from_exam_results()
     if not args.init and not args.update:
