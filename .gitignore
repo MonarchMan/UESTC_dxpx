@@ -7,4 +7,8 @@
 /dataSources/
 /dataSources.local.xml
 .idea
-dxpx/jjfz/temp/积极分子题库.zip
+dxpx/jjfz/temp/
+.venv/
+*.pyc
+# 用于检查scripts[7]内容的文件
+dxpx/jjfz/1.js

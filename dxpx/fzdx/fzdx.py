@@ -1,4 +1,4 @@
-﻿import json
+import json
 import argparse
 import re
 import sys
@@ -9,6 +9,7 @@ import requests
 # if __package__ is None or __package__ == '':
 #     sys.path.append(str(Path(__file__).resolve().parents[2]))
 
+from dxpx.common.cookies import load_cookies
 from dxpx.common.player import BaseAutoPlayer
 
 class FZDXAutoPlayer(BaseAutoPlayer):
@@ -161,18 +162,25 @@ class FZDXAutoPlayer(BaseAutoPlayer):
         self.update_questions(new_radio_df, new_checkbox_df, new_yes_or_no_df, new_gap_filling_df)
 
 def main():
-    cookies = {
-        '_xsrf': '2|db676230|d2ceff2a13c79a79d32f4c77b30127d8|1780298868',
-        'menu_open': 'false',
-        'is_first': '"2|1:0|10:1780311172|8:is_first|4:MA==|7d6fc6047434a0c4bd9fbe8e974ae21b1e5147bc0bb1c330fd39062f66333a4e"',
-        'token': 'eyJ0eXAiOiJqd3QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoyODgyMCwic3RhdGUiOjEsInVzZXJfc2lkIjoiMjAyNDIxMTEwMzAzIiwidXNlcl9uYW1lIjoiXHU1MzRlXHU0ZTlhXHU2OTYwIiwidXNlcl9wd2QiOiI5N2E3NmZjZGQ4NDBiZDg3YjA0MzgxM2U5ODlmMmExYzA0NjA3ZWRhIiwicGFydHlfY2F0ZWdvcnkiOjAsInBoYXNlIjozLCJhdmF0YXIiOiIiLCJ0cnVlX2F2YXRhciI6Ii9zdGF0aWMvdXBsb2FkL2ltYWdlcy8yMDI1LTA1LTIyLzIwMzQ4Yzk3OWYzMGQ2Mjc0ZWRjM2MwNjM5YWQ2YTYzLmpwZyIsInJvbGVfaWQiOjEsInBhcnR5X2JyYW5jaCI6IiIsInNzb19pZCI6IiIsImlzX3ZpcnR1YWwiOjAsImlzX2ZpcnN0X2xvZ2luIjowLCJzdGF0ZV9pZCI6NTQ0NzEsInNlc3Npb24iOiI4YzcwZTE3ZS1iY2UwLTRkMzItOGMxYi02ZTAzMzEwZjA0NTMiLCJ0b2tlbiI6MTc4MDMxMTE3MiwiZXhwIjoxNzgwMzEyOTcyfQ.t81HWDikixKvCH_JH43nb7TtA76yzUDn82EiJctmJW8',
-        'ua_id': '"2|1:0|10:1780311670|5:ua_id|616:eyJ1c2VyX2lkIjogMjg4MjAsICJzdGF0ZSI6IDEsICJ1c2VyX3NpZCI6ICIyMDI0MjExMTAzMDMiLCAidXNlcl9uYW1lIjogIlx1NTM0ZVx1NGU5YVx1Njk2MCIsICJ1c2VyX3B3ZCI6ICI5N2E3NmZjZGQ4NDBiZDg3YjA0MzgxM2U5ODlmMmExYzA0NjA3ZWRhIiwgInBhcnR5X2NhdGVnb3J5IjogMCwgInBoYXNlIjogMywgImF2YXRhciI6ICIiLCAidHJ1ZV9hdmF0YXIiOiAiL3N0YXRpYy91cGxvYWQvaW1hZ2VzLzIwMjUtMDUtMjIvMjAzNDhjOTc5ZjMwZDYyNzRlZGMzYzA2MzlhZDZhNjMuanBnIiwgInJvbGVfaWQiOiAxLCAicGFydHlfYnJhbmNoIjogIiIsICJzc29faWQiOiAiIiwgImlzX3ZpcnR1YWwiOiAwLCAiaXNfZmlyc3RfbG9naW4iOiAwLCAic3RhdGVfaWQiOiA1NDQ3MSwgInNlc3Npb24iOiAiOGM3MGUxN2UtYmNlMC00ZDMyLThjMWItNmUwMzMxMGYwNDUzIiwgInRva2VuIjogMTc4MDMxMTE3Mn0=|b4853d0484ffcc4b85d1b8be5fca8c40427e086fdf842da9b177bad9413dfbf4"',
-    }
     parser = argparse.ArgumentParser(description='发展对象学习与题库工具')
+    parser.add_argument(
+        '--cookies-file', default='cookies.json',
+        help='cookies JSON 文件路径（默认 cookies.json）',
+    )
     parser.add_argument('--init', action='store_true', help='获取课程列表并保存')
     parser.add_argument('--output-dir', default=FZDXAutoPlayer.lesson_dir, help='设置课程列表保存目录')
     parser.add_argument('--update', action='store_true', help='从已完成考试结果更新题库')
     args = parser.parse_args()
+
+    try:
+        cookies = load_cookies(args.cookies_file)
+    except FileNotFoundError:
+        print(f"❌ 找不到 cookies 文件: {args.cookies_file}")
+        print("   请从 cookies.example.json 复制一份，填入你的登录信息")
+        sys.exit(1)
+    except ValueError as e:
+        print(f"❌ {e}")
+        sys.exit(1)
 
     player = FZDXAutoPlayer(cookies=cookies)
     if args.init:
