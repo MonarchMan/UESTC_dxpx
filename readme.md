@@ -3,7 +3,7 @@
 2025.11.21 经过测试，脚本顺利运行，并完成所有课程的观看任务。后续会考虑加入发展对象相关的支持。<br>
 2026.05.20 对本期积极分子课程再次进行测试，顺利完成所有任务。<br>
 2026.06.01 增加发展对象的视频课程、考试支持，并完成测试。<br>
-2026.06.10 调整 jjfz.py 命令：--init 只采集课程信息不再自动提交；新增 --submit LESSON_ID / --all 走两步法（/jjfz/lesson/video 拿 v_id 种子 → /jjfz/play 拿完整对）实际提交观看记录。<br>
+2026.06.10 新增 --submit LESSON_ID 走两步法（/jjfz/lesson/video 拿 v_id 种子 → /jjfz/play 拿完整对）实际提交观看记录。<br>
 
 ## 使用方法
 ### 1. 安装依赖
@@ -111,11 +111,12 @@ python dxpx\fzdx\exam.py --echos 10
 
 ## 主要功能
 ### 1. 视频刷课
-积极分子走两步：
-1. `python dxpx\jjfz\jjfz.py --init` —— 采集课程信息并保存到 `lessons.json`（不提交）
-2. `python dxpx\jjfz\jjfz.py --all` 或 `--submit LESSON_ID` —— 实际提交观看记录
+积极分子：<br>
+`python dxpx\jjfz\jjfz.py --init` —— 完成观看任务，采集课程信息并保存到 `lessons.json`。<br>
+`python dxpx\jjfz\jjfz.py --submit LESSON_ID` —— 完成指定课程的观看任务，该功能用于只需完成部分课程观看任务的情况。
 
-发展对象（fzdx）的 `--init` 仍保持原有行为（采集+提交一体）。
+发展对象:<br>
+`python dxpx\fzdx\fzdx.py --init` —— 完成观看任务，采集课程信息并保存到 `lessons.json`
 
 ### 2. 章节测试刷题
 积极分子脚本支持章节测试，运行：

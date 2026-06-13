@@ -1,6 +1,8 @@
 import json
 
 import argparse
+from typing import List, Tuple
+
 import requests
 import os
 import re
@@ -387,7 +389,12 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         lesson_ids = re.findall(pattern, response.text)
         return lesson_ids
 
-    def get_exam_paper(self, r_id: int):
+    def get_exam_paper(self, r_id: int) -> Tuple[List[dict], List[dict], List[dict], List[dict]]:
+        """
+        获取考试题库
+        :param r_id: 考试ID（rid）
+        :return: 考试题库
+        """
         params = {
             'rid': r_id,
         }
@@ -397,6 +404,11 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         return self.extract_questions(response.text, pattern)
 
     def get_lesson_exam_paper(self, rid: int):
+        """
+        获取课程考试题库
+        :param rid: 课程考试ID（rid）
+        :return: 课程考试题库
+        """
         params = {
             'rid': rid,
         }
@@ -449,13 +461,11 @@ def main():
         '--cookies-file', default='cookies.json',
         help='cookies JSON 文件路径（默认 cookies.json）',
     )
-    parser.add_argument('--init', action='store_true', help='获取课程列表并保存')
+    parser.add_argument('--init', action='store_true', help='获取课程列表，完成观看任务并保存')
     parser.add_argument('--output-dir', default=JJFZAutoPlayer.lesson_dir, help='设置课程列表保存目录')
     parser.add_argument('--update', action='store_true', help='从已完成考试结果更新题库')
     parser.add_argument('--submit', type=int, metavar='LESSON_ID',
                         help='提交指定 lesson 的所有必修视频观看记录')
-    parser.add_argument('--all', action='store_true',
-                        help='提交所有 lesson 的观看记录（与 --submit 互斥）')
     args = parser.parse_args()
 
     try:
@@ -475,15 +485,9 @@ def main():
     if args.update:
         player.update_from_exam_results()
 
-    # --submit / --all 走 submit_lesson_records 链路
-    if args.submit is not None and args.all:
-        print("❌ --submit 和 --all 互斥，只能选一个")
-        sys.exit(1)
-    if args.submit is not None or args.all:
-        if args.submit is not None:
-            target_lessons = [args.submit]
-        else:
-            target_lessons = [int(lid) for lid in player.get_lessons()]
+    # --submit 走 submit_lesson_records 链路
+    if args.submit:
+        target_lessons = [args.submit]
         total_success = 0
         total_failed = 0
         for lid in target_lessons:

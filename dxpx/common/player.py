@@ -59,18 +59,34 @@ class BaseAutoPlayer:
 
     @staticmethod
     def extract_required_lessons_info(text: str):
+        """
+        从 html 页面提取课程信息
+        :param text: 页面 HTML 内容
+        :return: (id_pairs, rest_ids, total_pages)
+        """
         pattern = r'<a\s+class="(?:dd_cut_on)?"[^>]*href="[^"]*v_id=(\d+)&r_id=(\d+)[^"]*"[^>]*>'
         id_pairs = re.findall(pattern, text)
 
         rest_pattern = r'<a\s+href="[^"]*v_id=(\d+)[^"]*"(?:\s+target="_blank")?>'
         rest_ids = re.findall(rest_pattern, text)
 
+        # 对 id_pairs 按 v_id 去重（保留第一次出现的组合，舍弃后续重复的 v_id）
+        seen_vids = set()
+        unique_id_pairs = []
+        for v_id, r_id in id_pairs:
+            if v_id not in seen_vids:
+                unique_id_pairs.append((v_id, r_id))
+                seen_vids.add(v_id)
+
+        # 对 rest_ids 去重
+        unique_rest_ids = list(dict.fromkeys(rest_ids))
+
         total_pages = 1
         pages_pattern = r"<a\s+href='[^']*page=(\d+)[^']*'[^>]*>末页"
         pages_match = re.search(pages_pattern, text)
         if pages_match:
             total_pages = int(pages_match.group(1))
-        return id_pairs, rest_ids, total_pages
+        return unique_id_pairs, unique_rest_ids, total_pages
 
     def get_lessons_and_save(self, output_dir: Optional[str] = None, save=False) -> Tuple[List, List]:
         """
@@ -266,7 +282,13 @@ class BaseAutoPlayer:
         self.save_result(self.radio_df, self.checkbox_df, self.yes_or_no_df, self.gap_filling_df, output_dir)
 
     @staticmethod
-    def extract_questions(page_html: str, pattern: str):
+    def extract_questions(page_html: str, pattern: str) -> Tuple[List[dict], List[dict], List[dict], List[dict]]:
+        """
+        从HTML中提取题目
+        :param page_html: HTML内容
+        :param pattern: 正则表达式模式
+        :return: 提取到的题目列表: 单选题、多选题、判断题、填空题
+        """
         error_subs = re.findall(pattern, page_html, re.DOTALL)
         radios = []
         checkboxes = []
