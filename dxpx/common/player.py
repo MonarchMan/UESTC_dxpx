@@ -161,7 +161,7 @@ class BaseAutoPlayer:
             print(f"lessons数据已保存到{output_dir}/lessons.json文件")
         return failed_list, lessons
 
-    def finish_lessons(self, lesson_path: Optional[str] = None) -> list:
+    def finish_lessons_from_local(self, lesson_path: Optional[str] = None) -> list:
         lesson_path = lesson_path or os.path.join(self.lesson_dir, 'lessons.json')
         lessons = self.load_lessons(lesson_path)
         failed_lessons = []

@@ -1,7 +1,7 @@
 import json
 
 import argparse
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import requests
 import os
@@ -296,7 +296,7 @@ class JJFZAutoPlayer(BaseAutoPlayer):
             return int(match.group(1))
         return 0
 
-    def submit_lesson_records(self, lesson_id: int) -> dict:
+    def finish_single_lesson(self, lesson_id: int) -> dict:
         """
         走完整流程：对一个 lesson 提交所有必修视频的观看记录。
         链路：get_required_lessons → get_lesson_v_resource_id → get_lesson_r_id → check_record
@@ -333,6 +333,30 @@ class JJFZAutoPlayer(BaseAutoPlayer):
                     entry['reason'] = 'check_record_failed'
                     results['failed'].append(entry)
         return results
+
+    def finish_lessons(self, lesson_ids: list) -> list:
+        """
+        对多个 lesson 提交所有必修视频的观看记录，并输出刷课结果信息。
+        :param lesson_ids: 课程ID列表
+        :return: 失败的课程ID列表
+        """
+        failed_lessons = []
+        total_success = 0
+        total_failed = 0
+        for lid in lesson_ids:
+            print(f'提交 lesson {lid}...')
+            results = self.finish_single_lesson(lid)
+            s_count = len(results['success'])
+            f_count = len(results['failed'])
+            total_success += s_count
+            total_failed += f_count
+            print(f'  成功 {s_count} 条, 失败 {f_count} 条')
+            for entry in results['failed']:
+                print(f'    失败: {entry}')
+            if f_count > 0:
+                failed_lessons.append(lid)
+        print(f'\n总计: 成功 {total_success} 条, 失败 {total_failed} 条')
+        return failed_lessons
 
     def get_lesson_v_resource_id(self, video_id: int, page: int = 1) -> list[tuple[int, int]]:
         """
@@ -464,7 +488,7 @@ def main():
     parser.add_argument('--init', action='store_true', help='获取课程列表，完成观看任务并保存')
     parser.add_argument('--output-dir', default=JJFZAutoPlayer.lesson_dir, help='设置课程列表保存目录')
     parser.add_argument('--update', action='store_true', help='从已完成考试结果更新题库')
-    parser.add_argument('--submit', type=int, metavar='LESSON_ID',
+    parser.add_argument('--lessons', nargs='+', metavar='LESSON_ID', type=int,
                         help='提交指定 lesson 的所有必修视频观看记录')
     args = parser.parse_args()
 
@@ -481,27 +505,11 @@ def main():
     player = JJFZAutoPlayer(cookies=cookies)
     if args.init:
         failed_lessons, success_lessons = player.get_lessons_and_save(output_dir=args.output_dir, save=True)
-        print(f"--init 完成：采集 {len(success_lessons)} 个 lesson, 共 {len(failed_lessons)} 个视频（未提交）")
+        print(f"--init 完成 {len(success_lessons)} 个 lesson的观看任务，未完成的课程有：\n{failed_lessons}")
     if args.update:
         player.update_from_exam_results()
-
-    # --submit 走 submit_lesson_records 链路
     if args.submit:
-        target_lessons = [args.submit]
-        total_success = 0
-        total_failed = 0
-        for lid in target_lessons:
-            print(f'提交 lesson {lid}...')
-            results = player.submit_lesson_records(lid)
-            s_count = len(results['success'])
-            f_count = len(results['failed'])
-            total_success += s_count
-            total_failed += f_count
-            print(f'  成功 {s_count} 条, 失败 {f_count} 条')
-            for entry in results['failed']:
-                print(f'    失败: {entry}')
-        print(f'\n总计: 成功 {total_success} 条, 失败 {total_failed} 条')
-        return
+        player.finish_lessons([args.submit])
 
     if not args.init and not args.update:
         parser.print_help()

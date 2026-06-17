@@ -3,7 +3,6 @@
 2025.11.21 经过测试，脚本顺利运行，并完成所有课程的观看任务。后续会考虑加入发展对象相关的支持。<br>
 2026.05.20 对本期积极分子课程再次进行测试，顺利完成所有任务。<br>
 2026.06.01 增加发展对象的视频课程、考试支持，并完成测试。<br>
-2026.06.10 新增 --submit LESSON_ID 走两步法（/jjfz/lesson/video 拿 v_id 种子 → /jjfz/play 拿完整对）实际提交观看记录。<br>
 
 ## 使用方法
 ### 1. 安装依赖
@@ -66,23 +65,15 @@ python dxpx\jjfz\exam.py --mode lesson --echos 30
 `--echos` 表示循环执行次数，可根据需要调整。
 
 #### 3.4 提交观看记录
-仅提交指定 lesson：
-```bash
-python dxpx\jjfz\jjfz.py --submit 567
-```
-
-提交所有 lesson（`--submit` 和 `--all` 互斥）：
-```bash
-python dxpx\jjfz\jjfz.py --all
-```
-
-与 `--init` 联动使用：
-```bash
-python dxpx\jjfz\jjfz.py --init           # 1. 先采集保存
-python dxpx\jjfz\jjfz.py --all            # 2. 再批量提交
-```
-
-`--all` 适用于中途中断后重跑某个 lesson，其余 lesson 不会重复提交。
+1. 完成所有观看任务，会打印未完成的课程列表到控制台，供后续步骤2处理：
+    ```bash
+    python dxpx\jjfz\jjfz.py --init
+    ```
+   默认会保存课程信息到[temp 目录](dxpx/jjfz/temp)，可以使用 `--output-dir` 指定其他位置。
+2. 仅完成指定 lessons 的所有必修视频观看任务：
+    ```bash
+    python dxpx\jjfz\jjfz.py --lessons 567 568 569
+    ```
 
 ### 4. 发展对象（fzdx）
 #### 4.1 初始化课程信息
@@ -113,7 +104,7 @@ python dxpx\fzdx\exam.py --echos 10
 ### 1. 视频刷课
 积极分子：<br>
 `python dxpx\jjfz\jjfz.py --init` —— 完成观看任务，采集课程信息并保存到 `lessons.json`。<br>
-`python dxpx\jjfz\jjfz.py --submit LESSON_ID` —— 完成指定课程的观看任务，该功能用于只需完成部分课程观看任务的情况。
+`python dxpx\jjfz\jjfz.py --lessons LESSON_ID ...` —— 完成指定课程的观看任务，该功能用于只需完成部分课程观看任务的情况。
 
 发展对象:<br>
 `python dxpx\fzdx\fzdx.py --init` —— 完成观看任务，采集课程信息并保存到 `lessons.json`
