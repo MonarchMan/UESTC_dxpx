@@ -28,24 +28,18 @@ def load_lessons(file_path='./temp/lessons.json'):
 class JJFZAutoPlayer(BaseAutoPlayer):
     question_dir = 'dxpx/jjfz/temp'
     lesson_dir = 'dxpx/jjfz/temp'
+    stg = '42'  # 2026 新版站点要求所有请求携带 stg 阶段参数，否则返回“访问路径有误”
 
     def __init__(self, cookies: dict):
         super().__init__(cookies)
+        # 新版站点会按请求头区分客户端：带 X-Requested-With/Content-Type 等 XHR 头会被判为
+        # 非法导航、返回登录页；必须使用浏览器导航风格头才能拿到真实页面。
         self.headers = {
-            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
             'Connection': 'keep-alive',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            'Origin': 'https://dxpx.uestc.edu.cn',
-            'Referer': 'https://dxpx.uestc.edu.cn/jjfz/play?v_id=12722&r_id=52564&r=video&t=2&pg=1',
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-origin',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
-            'X-Requested-With': 'XMLHttpRequest',
-            'sec-ch-ua': '"Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
+            'Referer': 'https://dxpx.uestc.edu.cn/jjfz/?stg=42',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:159.0) Gecko/20100101 Firefox/159.0',
         }
 
     def parse_m3u8(self, url: str):
@@ -220,9 +214,10 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         :param r_id: 观看记录ID（从 script[8] 里抓到的那个）
         :return: True 表示服务器返回 code=1（接受）
         """
-        url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/resource_record'
+        url = 'https://dxpx.uestc.edu.cn/jjfz/play/resource_record'
         data = {
             'rid': r_id,
+            'stg': self.stg,
             'lesson_id': lesson_id,
             'resource_id': resource_id,
             'video_id': video_id,
@@ -250,6 +245,7 @@ class JJFZAutoPlayer(BaseAutoPlayer):
             'lesson_id': lesson_id,
             'required': 1,
             'page': page,
+            'stg': self.stg,
         }
 
         url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/video'
@@ -258,7 +254,7 @@ class JJFZAutoPlayer(BaseAutoPlayer):
 
     def get_lesson_r_id(self, video_id: int, resource_id: int, page: int = 1) -> int:
         """
-        从 /jjfz/play 播放页的 /html/body/script[8] 中提取真正的 rid（观看记录 ID）。
+        从 /jjfz/play 播放页的 script 块中提取真正的 rid（观看记录 ID）。
 
         该 script 块里 rid= 会出现多次（如 current_time 定时器里也有一个），
         真正用于 /jjfz/lesson/resource_record 提交的是 player.on('ended') 块里的那个。
@@ -267,7 +263,7 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         :param video_id: 视频ID
         :param resource_id: 资源ID
         :param page: 页码，非必须参数，默认值为1
-        :return: r_id（int）。未找到时返回 0。
+        :return: r_id（int）。未找到、或返回的 r_id 与请求的 video_id/resource_id 不匹配时返回 0。
         """
         params = {
             'v_id': video_id,
@@ -275,25 +271,31 @@ class JJFZAutoPlayer(BaseAutoPlayer):
             'r': 'video',
             't': '2',
             'pg': page,
+            'stg': self.stg,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/play'
         response = requests.get(url=url, params=params, cookies=self.cookies, headers=self.headers)
 
-        # 1) 取 /html/body/script[8]（XPath 1-indexed → Python list index 7）
+        # 1) 遍历所有 <script> 块，找到含"4 字段齐全" rid 的那块
+        #    （旧版固定在 script[8]，新版页面 script 数量变了，不能再写死索引）
         script_pattern = re.compile(r'<script\b[^>]*>(.*?)</script>', re.DOTALL | re.IGNORECASE)
         scripts = script_pattern.findall(response.text)
-        if len(scripts) < 8:
-            return 0
-        script_block = scripts[7]
 
-        # 2) 在 script_block 里找"4 字段齐全"的 rid
-        #    形如：rid: "N", resource_id: "M", video_id: "K", lesson_id: "L"
+        # 2) 形如：rid: "N", resource_id: "M", video_id: "K", lesson_id: "L"
         rid_pattern = re.compile(
             r'rid:\s*"(\d+)"\s*,\s*resource_id:\s*"(\d+)"\s*,\s*video_id:\s*"(\d+)"\s*,\s*lesson_id:\s*"(\d+)"'
         )
-        match = rid_pattern.search(script_block)
-        if match:
-            return int(match.group(1))
+        for script_block in scripts:
+            match = rid_pattern.search(script_block)
+            if not match:
+                continue
+            rid = int(match.group(1))
+            matched_resource_id = int(match.group(2))
+            matched_video_id = int(match.group(3))
+            # 页码/种子可能让页面回退到别的视频，r_id 与请求资源不符时不能提交
+            if matched_video_id != int(video_id) or matched_resource_id != int(resource_id):
+                continue
+            return rid
         return 0
 
     def finish_single_lesson(self, lesson_id: int) -> dict:
@@ -302,12 +304,63 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         链路：get_required_lessons → get_lesson_v_resource_id → get_lesson_r_id → check_record
         注：play 页对每个种子都返回 N 对相邻视频，同一对可能被多种子重复扫到——seen_pairs 去重。
         :param lesson_id: 课程ID
-        :return: {'success': [...], 'failed': [...]}
+        :return: {'success': [...], 'failed': [...], 'accepted': int, 'attempted': int}
+                 success 表示服务器接受了记录（code=1），不代表网站进度已显示完成
         """
         results = {'success': [], 'failed': []}
         seen_pairs = set()
-        v_ids = self.get_required_lessons(lesson_id)
-        for v_id in v_ids:
+        # get_required_lessons 返回 (id_pairs, courseware_ids, total_pages)
+        id_pairs, courseware_ids, _total_pages = self.get_required_lessons(lesson_id)
+
+        seeds = [int(v_id) for v_id, _r_id in id_pairs]
+        # 同一视频的不同资源也要保留
+        for v_id, resource_id in id_pairs:
+            key = (int(v_id), int(resource_id))
+            if key in seen_pairs:
+                continue
+            seen_pairs.add(key)
+            r_id = self.get_lesson_r_id(key[0], key[1])
+            if not r_id:
+                results['failed'].append({
+                    'video_id': key[0],
+                    'resource_id': key[1],
+                    'reason': 'no_rid',
+                })
+                continue
+            ok = self.check_record(lesson_id, key[0], key[1], r_id)
+            entry = {'video_id': key[0], 'resource_id': key[1], 'r_id': r_id}
+            if ok:
+                results['success'].append(entry)
+            else:
+                entry['reason'] = 'check_record_failed'
+                results['failed'].append(entry)
+
+        # 微课件/专家讲座只有 v_id，需要额外走 play 页拿 resource_id
+        for video_id in courseware_ids:
+            seeds.append(int(video_id))
+            extras = self.get_course_ware_extra_ids(v_id=int(video_id))
+            if not extras:
+                results['failed'].append({
+                    'video_id': int(video_id),
+                    'resource_id': None,
+                    'reason': 'no_resource_id',
+                })
+                continue
+            r_id, resource_id = extras
+            r_id, resource_id = int(r_id), int(resource_id)
+            key = (int(video_id), resource_id)
+            if key in seen_pairs:
+                continue
+            seen_pairs.add(key)
+            ok = self.check_record(lesson_id, key[0], key[1], r_id)
+            entry = {'video_id': key[0], 'resource_id': key[1], 'r_id': r_id}
+            if ok:
+                results['success'].append(entry)
+            else:
+                entry['reason'] = 'check_record_failed'
+                results['failed'].append(entry)
+
+        for v_id in seeds:
             pairs = self.get_lesson_v_resource_id(v_id)
             for video_id, resource_id in pairs:
                 if (video_id, resource_id) in seen_pairs:
@@ -332,30 +385,33 @@ class JJFZAutoPlayer(BaseAutoPlayer):
                 else:
                     entry['reason'] = 'check_record_failed'
                     results['failed'].append(entry)
+        results['accepted'] = len(results['success'])
+        results['attempted'] = len(results['success']) + len(results['failed'])
         return results
 
     def finish_lessons(self, lesson_ids: list) -> list:
         """
-        对多个 lesson 提交所有必修视频的观看记录，并输出刷课结果信息。
+        对多个 lesson 提交所有必修视频的观看记录，并输出提交结果。
         :param lesson_ids: 课程ID列表
-        :return: 失败的课程ID列表
+        :return: 有资源未被接口接受的课程ID列表
         """
         failed_lessons = []
-        total_success = 0
+        total_accepted = 0
         total_failed = 0
         for lid in lesson_ids:
             print(f'提交 lesson {lid}...')
             results = self.finish_single_lesson(lid)
             s_count = len(results['success'])
             f_count = len(results['failed'])
-            total_success += s_count
+            total_accepted += s_count
             total_failed += f_count
-            print(f'  成功 {s_count} 条, 失败 {f_count} 条')
+            print(f'  接口接受 {s_count} 条, 未接受 {f_count} 条')
             for entry in results['failed']:
-                print(f'    失败: {entry}')
-            if f_count > 0:
+                print(f'    未接受: {entry}')
+            if f_count > 0 or results['attempted'] == 0:
                 failed_lessons.append(lid)
-        print(f'\n总计: 成功 {total_success} 条, 失败 {total_failed} 条')
+        print(f'\n总计: 接口接受 {total_accepted} 条, 未接受 {total_failed} 条')
+        print('注意：接口接受仅代表服务器收录了观看记录，网站进度可能仍需时间刷新或未更新，请以网站实际进度为准。')
         return failed_lessons
 
     def get_lesson_v_resource_id(self, video_id: int, page: int = 1) -> list[tuple[int, int]]:
@@ -374,6 +430,7 @@ class JJFZAutoPlayer(BaseAutoPlayer):
             'r': 'video',
             't': '2',
             'pg': page,
+            'stg': self.stg,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/play'
         response = requests.get(url=url, params=params, cookies=self.cookies, headers=self.headers)
@@ -389,18 +446,24 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         """
         获取只有 v_id 的微课件或者专家讲座课程的资源ID对
         :param v_id: 视频ID
-        :return: 资源ID对列表，每个元素为(r_id, resource_id)元组
+        :return: 资源ID对 (r_id, resource_id)；页面中找不到时返回 None
         """
         params = {
             'v_id': v_id,
             'r': 'video',
             't': '2',
+            'stg': self.stg,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/play'
         response = requests.get(url=url, params=params, cookies=self.cookies, headers=self.headers)
         pattern = r'rid: "(\d+)",\s+resource_id: "(\d+)"'
         match = re.search(pattern, response.text)
-        return match.group(1), match.group(2)
+        if not match:
+            return None
+        try:
+            return match.group(1), match.group(2)
+        except IndexError:
+            return None
 
     def get_lessons(self):
         """
@@ -408,8 +471,8 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         :return: 课程ID列表
         """
         url = 'https://dxpx.uestc.edu.cn/jjfz/lesson'
-        response = requests.get(url=url, cookies=self.cookies, headers=self.headers)
-        pattern = r'<a href="[^"]*lesson_id=(\d+)">'
+        response = requests.get(url=url, params={'stg': self.stg}, cookies=self.cookies, headers=self.headers)
+        pattern = r'<a href="[^"]*lesson_id=(\d+)[^"]*"'
         lesson_ids = re.findall(pattern, response.text)
         return lesson_ids
 
@@ -421,6 +484,7 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         """
         params = {
             'rid': r_id,
+            'stg': self.stg,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/end_show'
         response = requests.get(url=url, params=params, cookies=self.cookies, headers=self.headers)
@@ -435,6 +499,7 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         """
         params = {
             'rid': rid,
+            'stg': self.stg,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/show'
 
@@ -449,7 +514,7 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         :return: 已完成的考试列表，每个元素为一个考试ID（rid）
         """
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/end_record'
-        response = requests.get(url=url, cookies=self.cookies, headers=self.headers)
+        response = requests.get(url=url, params={'stg': self.stg}, cookies=self.cookies, headers=self.headers)
         pattern = r'rid=(\d+)'
         r_ids = re.findall(pattern, response.text)
         r_ids = [int(r_id) for r_id in r_ids]
@@ -461,7 +526,7 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         :return: 已完成的课程考试列表，每个元素为一个考试ID（rid）
         """
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/record'
-        response = requests.get(url=url, cookies=self.cookies, headers=self.headers)
+        response = requests.get(url=url, params={'stg': self.stg}, cookies=self.cookies, headers=self.headers)
         pattern = r'rid=(\d+)'
         r_ids = re.findall(pattern, response.text)
         r_ids = [int(r_id) for r_id in r_ids]
@@ -504,14 +569,30 @@ def main():
 
     player = JJFZAutoPlayer(cookies=cookies)
     if args.init:
-        failed_lessons, success_lessons = player.get_lessons_and_save(output_dir=args.output_dir, save=True)
-        print(f"--init 完成 {len(success_lessons)} 个 lesson的观看任务，未完成的课程有：\n{failed_lessons}")
+        try:
+            failed_lessons, collected_lessons = player.get_lessons_and_save(
+                output_dir=args.output_dir, save=True
+            )
+        except RuntimeError as e:
+            print(f"❌ {e}")
+            sys.exit(1)
+        print(
+            f"--init 已采集 {len(collected_lessons)} 个 lesson 的视频资源并保存；"
+            f"接口未接受的记录 {len(failed_lessons)} 条。\n"
+            "接口接受不等于网站进度已更新，请到网站核对实际观看进度。"
+        )
+        if failed_lessons:
+            print(f"接口未接受的资源：\n{failed_lessons}")
     if args.update:
         player.update_from_exam_results()
-    if args.submit:
-        player.finish_lessons([args.submit])
+    if args.lessons:
+        failed = player.finish_lessons(args.lessons)
+        if failed:
+            print(f"--lessons 存在接口未接受的课程：{failed}")
+        else:
+            print("--lessons 所有记录均被接口接受（网站进度请另行核对）")
 
-    if not args.init and not args.update:
+    if not args.init and not args.update and not args.lessons:
         parser.print_help()
 
 

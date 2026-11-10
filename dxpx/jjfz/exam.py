@@ -14,6 +14,7 @@ from dxpx.jjfz.jjfz import JJFZAutoPlayer
 
 class Exam(BaseExam):
     player_cls = JJFZAutoPlayer
+    stg = '42'  # 2026 新版站点要求所有请求携带 stg 阶段参数，否则返回“访问路径有误”
 
     def __init__(self, cookies):
         super().__init__(cookies)
@@ -34,11 +35,12 @@ class Exam(BaseExam):
 
     def start_exam(self):
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/end_exam'
-        response = requests.get(url=url, cookies=self.cookies, headers=self.headers)
+        response = requests.get(url=url, params={'stg': self.stg}, cookies=self.cookies, headers=self.headers)
 
     def get_question(self, question_id: int):
         params = {
             'i': question_id,
+            'stg': self.stg,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/get_question'
         response = requests.get(url=url, params=params, cookies=self.cookies, headers=self.headers)
@@ -54,10 +56,12 @@ class Exam(BaseExam):
         """
         params = {
             'i': question_id,
+            'stg': self.stg,
         }
 
         data = {
             'i': question_id,
+            'stg': self.stg,
             'qid': qid,
             'answer': answer,
             '_xsrf': self.cookies['_xsrf'],
@@ -71,16 +75,17 @@ class Exam(BaseExam):
 
     def submit_exam(self):
         data = {
+            'stg': self.stg,
             '_xsrf': self.cookies['_xsrf'],
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/submit'
 
-        response = requests.post(url=url, cookies=self.cookies, headers=self.headers, data=data)
+        response = requests.post(url=url, params={'stg': self.stg}, cookies=self.cookies, headers=self.headers, data=data)
         return response.json()['code'] == 1
 
     def get_exam_result(self):
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/result'
-        response = requests.get(url=url, cookies=self.cookies, headers=self.headers)
+        response = requests.get(url=url, params={'stg': self.stg}, cookies=self.cookies, headers=self.headers)
         pattern = r'rid=(\d+)'
         match = re.search(pattern, response.text)
         if match:
@@ -92,6 +97,7 @@ class Exam(BaseExam):
     def start_lesson_exam(self, lesson_id: int):
         params = {
             'lesson_id': lesson_id,
+            'stg': self.stg,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/exam'
         response = requests.get(url, params=params, cookies=self.cookies, headers=self.headers)
@@ -100,6 +106,7 @@ class Exam(BaseExam):
         params = {
             'i': question_id,
             'lid': lesson_id,
+            'stg': self.stg,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/exam/get_question'
 
@@ -109,11 +116,13 @@ class Exam(BaseExam):
     def answer_lesson_question(self, lesson_id: int, question_id: int, qid: int, answer: str):
         params = {
             'i': question_id,
+            'stg': self.stg,
         }
 
         data = {
             'i': question_id,
             'lid': lesson_id,
+            'stg': self.stg,
             'qid': qid,
             'answer': answer,
             '_xsrf': self.cookies['_xsrf'],
@@ -129,11 +138,12 @@ class Exam(BaseExam):
     def submit_lesson_exam(self, lesson_id: int):
         data = {
             'lid': lesson_id,
+            'stg': self.stg,
             '_xsrf': self.cookies['_xsrf'],
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/exam/submit'
 
-        response = requests.post(url=url, cookies=self.cookies, headers=self.headers, data=data)
+        response = requests.post(url=url, params={'stg': self.stg}, cookies=self.cookies, headers=self.headers, data=data)
         if response.status_code == 200:
             if response.json()['code'] == 1:
                 return True
@@ -147,6 +157,7 @@ class Exam(BaseExam):
         """
         params = {
             'lid': lesson_id,
+            'stg': self.stg,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/exam/result'
 

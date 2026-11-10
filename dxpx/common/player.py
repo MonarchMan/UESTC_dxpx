@@ -12,6 +12,8 @@ from pypinyin import lazy_pinyin
 class BaseAutoPlayer:
     question_dir = './temp'
     lesson_dir = './temp'
+    # 单门课程最多翻多少页，防止页面页码解析异常时无限请求
+    max_pages_per_lesson = 100
 
     def __init__(self, cookies: dict):
         self.ts_list = []
@@ -63,6 +65,10 @@ class BaseAutoPlayer:
         从 html 页面提取课程信息
         :param text: 页面 HTML 内容
         :return: (id_pairs, rest_ids, total_pages)
+            id_pairs: [(v_id, r_id), ...]，按 (v_id, r_id) 去重；
+                      同一视频的不同资源都会保留，避免按 v_id 去重导致漏采
+            rest_ids: 只有 v_id 的微课件/专家讲座视频 ID，按出现顺序去重
+            total_pages: 总页数，至少为 1
         """
         pattern = r'<a\s+class="(?:dd_cut_on)?"[^>]*href="[^"]*v_id=(\d+)&r_id=(\d+)[^"]*"[^>]*>'
         id_pairs = re.findall(pattern, text)
@@ -70,48 +76,121 @@ class BaseAutoPlayer:
         rest_pattern = r'<a\s+href="[^"]*v_id=(\d+)[^"]*"(?:\s+target="_blank")?>'
         rest_ids = re.findall(rest_pattern, text)
 
-        # 对 id_pairs 按 v_id 去重（保留第一次出现的组合，舍弃后续重复的 v_id）
-        seen_vids = set()
+        # 按资源对去重：同一视频可能对应多个资源，只按 v_id 去重会丢掉后续资源
+        seen_pairs = set()
         unique_id_pairs = []
         for v_id, r_id in id_pairs:
-            if v_id not in seen_vids:
+            key = (v_id, r_id)
+            if key not in seen_pairs:
                 unique_id_pairs.append((v_id, r_id))
-                seen_vids.add(v_id)
+                seen_pairs.add(key)
 
         # 对 rest_ids 去重
         unique_rest_ids = list(dict.fromkeys(rest_ids))
 
         total_pages = 1
-        pages_pattern = r"<a\s+href='[^']*page=(\d+)[^']*'[^>]*>末页"
-        pages_match = re.search(pages_pattern, text)
-        if pages_match:
-            total_pages = int(pages_match.group(1))
+        # “末页/尾页”链接最可靠，同时兼容单双引号
+        pages_pattern = r"<a\s[^>]*href=['\"][^'\"]*[?&]page=(\d+)[^'\"]*['\"][^>]*>\s*(?:末页|尾页)"
+        pages_matches = re.findall(pages_pattern, text)
+        if pages_matches:
+            total_pages = max(int(page) for page in pages_matches)
+        else:
+            # 没有“末页”时退化为页面中出现过的最大页码
+            all_page_nums = re.findall(r'[?&]page=(\d+)', text)
+            if all_page_nums:
+                total_pages = max(int(page) for page in all_page_nums)
         return unique_id_pairs, unique_rest_ids, total_pages
 
     def get_lessons_and_save(self, output_dir: Optional[str] = None, save=False) -> Tuple[List, List]:
         """
         获取课程列表并保存到 lessons.json。
         两步法：
-            1) 从 /jjfz/lesson/video 拿 v_id 种子（可能不完整）
-            2) 对每个 v_id 种子走 /jjfz/play 拿**完整**的 (v_id, r_id) 对
+            1) 从 lesson 列表页拿 lesson_id
+            2) 对每个 lesson 逐页走 /lesson/video 拿 (v_id, r_id) 资源对
         :param output_dir: lessons.json 保存目录，默认 self.lesson_dir
         :param save: 是否写入磁盘
-        :return: 收集失败的课程信息列表；已收集的 lessons 列表（每个元素 {'lesson_id': ..., 'id_params': [...]}）
+        :return: 收集失败的课程信息列表；已收集的 lessons 列表
+                 （每个元素 {'lesson_id': ..., 'id_params': [{'video_id':..., 'resource_id':...}]}）
+        :raises RuntimeError: 未采集到任何课程（通常是登录失效），此时不会覆盖已有 lessons.json
         """
         output_dir = output_dir or self.lesson_dir
         lesson_ids = self.get_lessons()
+        if not lesson_ids:
+            raise RuntimeError(
+                "未获取到任何课程，可能登录已失效或页面结构变化；"
+                "已保留原有 lessons.json，未写入空结果"
+            )
+
         lessons = []
         failed_list = []
+        seen_lesson_ids = set()
         for lesson_id in lesson_ids:
-            page_num = 1
-            while True:
-                id_pairs, courseware_ids, total_pages = self.get_required_lessons(lesson_id=lesson_id, page=page_num)
-                page_num += 1
-                id_params = []
+            if lesson_id in seen_lesson_ids:
+                continue
+            seen_lesson_ids.add(lesson_id)
+
+            collected_pairs = []
+            # 单门课程内按 (video_id, resource_id) 去重，避免跨页或重复链接造成重复提交
+            seen_pairs = set()
+            page = 1
+            total_pages = 1
+            while page <= total_pages and page <= self.max_pages_per_lesson:
+                id_pairs, courseware_ids, total_pages = self.get_required_lessons(
+                    lesson_id=lesson_id, page=page
+                )
+                total_pages = max(int(total_pages or 1), 1)
+
                 for id_pair in id_pairs:
                     video_id = int(id_pair[0])
                     resource_id = int(id_pair[1])
-                    r_id = self.get_lesson_r_id(video_id=video_id, resource_id=resource_id, page=page_num)
+                    key = (video_id, resource_id)
+                    if key in seen_pairs:
+                        continue
+                    seen_pairs.add(key)
+
+                    try:
+                        r_id = self.get_lesson_r_id(
+                            video_id=video_id, resource_id=resource_id, page=page
+                        )
+                    except (IndexError, TypeError, ValueError):
+                        # 子类解析失败时不要中断整轮采集
+                        r_id = 0
+                    success = False
+                    if r_id:
+                        success = self.check_record(
+                            lesson_id=lesson_id,
+                            video_id=video_id,
+                            resource_id=resource_id,
+                            r_id=r_id,
+                        )
+                    if not success:
+                        failed_list.append({
+                            'lesson_id': lesson_id,
+                            'video_id': video_id,
+                            'resource_id': resource_id,
+                            'reason': 'check_record_failed' if r_id else 'no_rid',
+                        })
+                    collected_pairs.append((video_id, resource_id))
+
+                for video_id in courseware_ids:
+                    video_id = int(video_id)
+                    try:
+                        r_id, resource_id = self.get_course_ware_extra_ids(v_id=video_id)
+                        r_id = int(r_id)
+                        resource_id = int(resource_id)
+                    except (TypeError, ValueError, AttributeError):
+                        failed_list.append({
+                            'lesson_id': lesson_id,
+                            'video_id': video_id,
+                            'resource_id': None,
+                            'reason': 'no_resource_id',
+                        })
+                        continue
+                    key = (video_id, resource_id)
+                    if key in seen_pairs:
+                        continue
+                    seen_pairs.add(key)
+
                     success = self.check_record(
                         lesson_id=lesson_id,
                         video_id=video_id,
@@ -123,37 +202,31 @@ class BaseAutoPlayer:
                             'lesson_id': lesson_id,
                             'video_id': video_id,
                             'resource_id': resource_id,
+                            'reason': 'check_record_failed',
                         })
-                    id_params.append((video_id, resource_id, r_id))
-                print(f"课程{lesson_id}的相关参数已获取")
+                    collected_pairs.append((video_id, resource_id))
 
-                for video_id in courseware_ids:
-                    r_id, resource_id = self.get_course_ware_extra_ids(v_id=int(video_id))
-                    r_id = int(r_id)
-                    resource_id = int(resource_id)
-                    success = self.check_record(
-                        lesson_id=lesson_id,
-                        video_id=int(video_id),
-                        resource_id=resource_id,
-                        r_id=r_id,
-                    )
-                    if not success:
-                        failed_list.append({
-                            'lesson_id': lesson_id,
-                            'video_id': int(video_id),
-                            'resource_id': resource_id,
-                        })
-                    id_params.append((int(video_id), resource_id, r_id))
+                print(f"课程{lesson_id}第{page}页的相关参数已获取")
+                page += 1
 
-                lessons.append({
-                    'lesson_id': lesson_id,
-                    'id_params': [
-                        {'video_id': video_id, 'resource_id': resource_id}
-                        for video_id, resource_id, _ in id_params
-                    ],
-                })
-                if page_num > total_pages:
-                    break
+            if not collected_pairs:
+                print(f"警告：课程{lesson_id}未采集到任何视频资源，已跳过")
+                continue
+
+            lessons.append({
+                'lesson_id': lesson_id,
+                'id_params': [
+                    {'video_id': video_id, 'resource_id': resource_id}
+                    for video_id, resource_id in collected_pairs
+                ],
+            })
+
+        if not lessons:
+            raise RuntimeError(
+                "所有课程均未采集到视频资源，可能登录已失效或页面结构变化；"
+                "已保留原有 lessons.json，未写入空结果"
+            )
+
         if save:
             os.makedirs(output_dir, exist_ok=True)
             with open(os.path.join(output_dir, 'lessons.json'), 'w', encoding='utf-8') as f:
@@ -165,22 +238,31 @@ class BaseAutoPlayer:
         lesson_path = lesson_path or os.path.join(self.lesson_dir, 'lessons.json')
         lessons = self.load_lessons(lesson_path)
         failed_lessons = []
+        seen = set()
         for lesson in lessons:
             lesson_id = lesson['lesson_id']
             for id_param in lesson['id_params']:
                 video_id, resource_id = id_param['video_id'], id_param['resource_id']
+                key = (lesson_id, video_id, resource_id)
+                if key in seen:
+                    continue
+                seen.add(key)
+
                 r_id = self.get_lesson_r_id(video_id=video_id, resource_id=resource_id)
-                success = self.check_record(
-                    lesson_id=lesson_id,
-                    video_id=video_id,
-                    resource_id=resource_id,
-                    r_id=r_id,
-                )
+                success = False
+                if r_id:
+                    success = self.check_record(
+                        lesson_id=lesson_id,
+                        video_id=video_id,
+                        resource_id=resource_id,
+                        r_id=r_id,
+                    )
                 if not success:
                     failed_lessons.append({
                         'lesson_id': lesson_id,
                         'video_id': video_id,
                         'resource_id': resource_id,
+                        'reason': 'check_record_failed' if r_id else 'no_rid',
                     })
         return failed_lessons
 
