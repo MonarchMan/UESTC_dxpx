@@ -6,6 +6,11 @@ import os
 
 class English:
     def __init__(self, cookies: dict):
+        """
+        初始化实例状态。
+        
+        :param cookies: 学堂在线请求使用的 Cookie 字典。
+        """
         self.cookies = cookies
         self.headers = {
             'accept': 'application/json, text/plain, */*',
@@ -29,7 +34,14 @@ class English:
             'xtbz': 'xt',
         }
 
-    def get_unit_exercise_list(self, unit_id: int, lesson_id: int):
+    def get_unit_exercise_list(self, unit_id: int, lesson_id: int) -> list:
+        """
+        获取指定单元的练习题，并清理题干和选项中的部分 HTML 标签。
+        
+        :param unit_id: 英语练习所在单元标识。
+        :param lesson_id: 英语课程标识。
+        :return: 包含 title、options 及可用用户答案 answer 的题目列表。
+        """
         url = f'https://www.xuetangx.com/api/v1/lms/exercise/get_exercise_list/{unit_id}/{lesson_id}/'
         response = requests.get(url=url, cookies=self.cookies, headers=self.headers)
         data = response.json()['data']
@@ -54,6 +66,7 @@ class English:
                 if match:
                     option['value'] = match.group(1)
                 question["options"].append(option)
+            # 平台用不同字段保存单个答案和多个答案，统一放入 answer。
             if "my_answer" in problem['user']:
                 question['answer'] = problem['user']['my_answer']
             elif "my_answers" in problem['user']:
@@ -62,7 +75,14 @@ class English:
             questions.append(question)
         return questions
 
-    def get_all_unit_exercise_list(self, lesson_id: int, save: bool = False):
+    def get_all_unit_exercise_list(self, lesson_id: int, save: bool = False) -> list:
+        """
+        汇总预设单元的练习题，按题干排序并按需保存。
+        
+        :param lesson_id: 英语课程标识。
+        :param save: 是否将结果保存到本地文件。默认值为 False。
+        :return: 按题干排序后的练习题列表。
+        """
         unit_ids = [5686240, 5686242, 5686244, 5686246, 5686248, 5686250, 5686252, 5686253]
         all_questions = []
         for unit_id in unit_ids:
@@ -80,6 +100,12 @@ class English:
     @staticmethod
     def save(questions: list, output_dir="../doc/mooc"):
         # 确保输出目录存在
+        """
+        将英语练习题的题干、选项和用户答案写入文本文件。
+        
+        :param questions: 待保存的题目字典列表，包含题干、选项及用户答案。
+        :param output_dir: 输出目录；为 None 时使用实例配置的对应保存目录。默认值为 '../doc/mooc'。
+        """
         os.makedirs(output_dir, exist_ok=True)
         # 构建完整文件路径
         file_path = os.path.join(output_dir, "english.txt")
@@ -105,6 +131,9 @@ class English:
                 f.write("\n")
 
 def main():
+    """
+    使用当前模块配置获取英语练习题并保存到本地。
+    """
     cookies = {
         '_abfpc': '00303bb98fec79728efcbc4e4dd27b2d8a4443f0_2.0',
         'cna': '123f7a1ee75f27568b50a13df12d8eeb',

@@ -1,86 +1,101 @@
 import pandas as pd
-import argparse
-import requests
 import re
-import sys
 from pathlib import Path
 
-if __package__ is None or __package__ == '':
-    sys.path.append(str(Path(__file__).resolve().parents[2]))
-
-from dxpx.common.cookies import load_cookies
 from dxpx.common.exam import BaseExam
 from dxpx.jjfz.jjfz import JJFZAutoPlayer
 
 class Exam(BaseExam):
     player_cls = JJFZAutoPlayer
 
-    def __init__(self, cookies):
-        super().__init__(cookies)
-        self.headers = {
-            'Accept': 'text/html, */*; q=0.01',
-            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-            'Connection': 'keep-alive',
-            'Referer': 'https://dxpx.uestc.edu.cn/jjfz/exam_center/end_exam',
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-origin',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0',
-            'X-Requested-With': 'XMLHttpRequest',
-            'sec-ch-ua': '"Chromium";v="142", "Microsoft Edge";v="142", "Not_A Brand";v="99"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
-        }
+    def __init__(self, headers):
+        """
+        初始化实例状态。
+        
+        :param headers: 请求头字典；认证请求通常需包含 Cookie，提交学习或答题记录时还需 _xsrf。
+        """
+        super().__init__(headers)
 
     def start_exam(self):
+        """
+        请求综合考试页面，建立考试状态。
+        """
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/end_exam'
-        response = requests.get(url=url, cookies=self.cookies, headers=self.headers)
+        params = {
+            'stg': self.stage,
+        }
+        response = self.session.get(url=url, headers=self.headers, params=params)
 
     def get_question(self, question_id: int):
+        """
+        获取综合考试中指定序号的题目。
+        
+        :param question_id: 题目在当前试卷中的序号，从 1 开始。
+        :return: 三元组 (title, options, qid)；options 中每项为 (选项文本, 答案标识)。
+        """
         params = {
             'i': question_id,
+            'stg': self.stage,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/get_question'
-        response = requests.get(url=url, params=params, cookies=self.cookies, headers=self.headers)
+        response = self.session.get(url=url, params=params, headers=self.headers)
         return self.extract_question(response.text)
 
     def answer_question(self, question_id: int, qid: int, answer: str):
         """
-        回答问题
-        :param question_id: 问题ID
-        :param qid: 问题QID
-        :param answer: 答案。单选：某个选项的answer_id；多选：多个answer_id，用“|”相连；判断：某个选项的answer_id；填空：字符串；
-        :return: 是否回答成功
+        向平台提交一道综合考试题目的答案。
+        
+        :param question_id: 题目在当前试卷中的序号，从 1 开始。
+        :param qid: 平台分配的题目标识，不同于题目序号。
+        :param answer: 提交的答案；选择题为选项标识，多选用 | 分隔，填空题为答案文本。
+        :return: bool；平台接受答案时为 True，否则为 False。
         """
         params = {
             'i': question_id,
+            'stg': self.stage,
         }
 
         data = {
             'i': question_id,
             'qid': qid,
             'answer': answer,
-            '_xsrf': self.cookies['_xsrf'],
+            '_xsrf': self.headers['_xsrf'],
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/answer'
-        response = requests.post(url=url, params=params, cookies=self.cookies, headers=self.headers, data=data)
+        response = self.session.post(url=url, params=params, headers=self.headers, data=data)
         if response.status_code == 200:
             if response.json()['code'] == 1:
                 return True
         return False
 
     def submit_exam(self):
+        """
+        提交当前综合考试试卷。
+        
+        :return: bool；平台确认提交成功时为 True，否则为 False。
+        """
         data = {
-            '_xsrf': self.cookies['_xsrf'],
+            '_xsrf': self.headers['_xsrf'],
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/submit'
 
-        response = requests.post(url=url, cookies=self.cookies, headers=self.headers, data=data)
+        params = {
+            'stg': self.stage,
+        }
+        response = self.session.post(url=url, headers=self.headers, params=params, data=data)
         return response.json()['code'] == 1
 
     def get_exam_result(self):
+        """
+        从综合考试结果页面提取结果标识。
+        
+        :return: 匹配到的结果标识字符串；未匹配到时返回整数 0。
+        """
         url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/result'
-        response = requests.get(url=url, cookies=self.cookies, headers=self.headers)
+        params = {
+            'stg': self.stage,
+        }
+        response = self.session.get(url=url, headers=self.headers, params=params)
         pattern = r'rid=(\d+)'
         match = re.search(pattern, response.text)
         if match:
@@ -90,25 +105,49 @@ class Exam(BaseExam):
         return rid
 
     def start_lesson_exam(self, lesson_id: int):
+        """
+        请求指定章节测试页面，建立测试状态。
+        
+        :param lesson_id: 课程或章节标识。
+        """
         params = {
             'lesson_id': lesson_id,
+            'stg': self.stage,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/exam'
-        response = requests.get(url, params=params, cookies=self.cookies, headers=self.headers)
+        response = self.session.get(url, params=params, headers=self.headers)
 
     def get_lesson_question(self, lesson_id: int, question_id: int):
+        """
+        获取章节测试中指定序号的题目。
+        
+        :param lesson_id: 课程或章节标识。
+        :param question_id: 题目在当前试卷中的序号，从 1 开始。
+        :return: 三元组 (title, options, qid)；options 中每项为 (选项文本, 答案标识)。
+        """
         params = {
             'i': question_id,
             'lid': lesson_id,
+            'stg': self.stage,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/exam/get_question'
 
-        response = requests.get(url=url, params=params, cookies=self.cookies, headers=self.headers)
+        response = self.session.get(url=url, params=params, headers=self.headers)
         return self.extract_question(response.text)
 
     def answer_lesson_question(self, lesson_id: int, question_id: int, qid: int, answer: str):
+        """
+        向平台提交指定章节测试题目的答案。
+        
+        :param lesson_id: 课程或章节标识。
+        :param question_id: 题目在当前试卷中的序号，从 1 开始。
+        :param qid: 平台分配的题目标识，不同于题目序号。
+        :param answer: 提交的答案；选择题为选项标识，多选用 | 分隔，填空题为答案文本。
+        :return: bool；平台接受答案时为 True，否则为 False。
+        """
         params = {
             'i': question_id,
+            'stg': self.stage,
         }
 
         data = {
@@ -116,24 +155,33 @@ class Exam(BaseExam):
             'lid': lesson_id,
             'qid': qid,
             'answer': answer,
-            '_xsrf': self.cookies['_xsrf'],
+            '_xsrf': self.headers['_xsrf'],
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/exam/answer'
 
-        response = requests.post(url=url, params=params, cookies=self.cookies, headers=self.headers, data=data)
+        response = self.session.post(url=url, params=params, headers=self.headers, data=data)
         if response.status_code == 200:
             if response.json()['code'] == 1:
                 return True
         return False
 
     def submit_lesson_exam(self, lesson_id: int):
+        """
+        向平台提交指定章节的测试试卷。
+        
+        :param lesson_id: 课程或章节标识。
+        :return: bool；平台确认提交成功时为 True，否则为 False。
+        """
         data = {
             'lid': lesson_id,
-            '_xsrf': self.cookies['_xsrf'],
+            '_xsrf': self.headers['_xsrf'],
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/exam/submit'
 
-        response = requests.post(url=url, cookies=self.cookies, headers=self.headers, data=data)
+        params = {
+            'stg': self.stage,
+        }
+        response = self.session.post(url=url, headers=self.headers, params=params, data=data)
         if response.status_code == 200:
             if response.json()['code'] == 1:
                 return True
@@ -141,16 +189,18 @@ class Exam(BaseExam):
 
     def get_lesson_exam_result(self, lesson_id: int):
         """
-        获取章节测试结果
-        :param lesson_id: 章节ID
-        :return: 考试结果ID
+        从章节测试结果页面提取结果标识。
+        
+        :param lesson_id: 课程或章节标识。
+        :return: int；匹配到的结果标识，未匹配到时为 0。
         """
         params = {
             'lid': lesson_id,
+            'stg': self.stage,
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/exam/result'
 
-        response = requests.get(url=url, params=params, cookies=self.cookies, headers=self.headers)
+        response = self.session.get(url=url, params=params, headers=self.headers)
         pattern = r'rid=(\d+)'
         match = re.search(pattern, response.text)
         if match:
@@ -159,8 +209,16 @@ class Exam(BaseExam):
         return 0
 
     def finish_lesson_exam(self, lesson_id: int, return_new: bool=False, player: JJFZAutoPlayer=None):
+        """
+        完成一次章节测试，并按需收集本地题库缺失的题目。
+        
+        :param lesson_id: 课程或章节标识。
+        :param return_new: 是否返回本地题库缺失的题目；为 False 时返回对应数量的空表。默认值为 False。
+        :param player: 已加载题库的课程处理实例；为 None 时按当前流程创建实例。默认值为 None。
+        :return: 单选、多选和判断三个 DataFrame；return_new 为 False 时均为空表。
+        """
         if player is None:
-            player = JJFZAutoPlayer(self.cookies)
+            player = JJFZAutoPlayer(self.headers)
             player.load_questions()
         self.start_lesson_exam(lesson_id)
         print("开始章节测试")
@@ -208,6 +266,7 @@ class Exam(BaseExam):
         rid = self.get_lesson_exam_result(lesson_id)
         print("提交试卷，章节测试结束")
 
+        # 只提取本轮未命中题库的题目，用结果页中的正确答案补充题库。
         if return_new:
             radios, checkboxes, yes_or_nos, _ = player.get_lesson_exam_paper(rid=rid)
             radios = [radios[i] for i in new_radios] if len(new_radios) > 0 else []
@@ -217,6 +276,12 @@ class Exam(BaseExam):
         return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
     def finish_all_lesson_exams(self, player: JJFZAutoPlayer=None):
+        """
+        读取本地课程列表，逐个完成章节测试并汇总新题。
+        
+        :param player: 可复用的课程处理实例；为 None 时使用默认课程目录并由单次测试流程创建实例。默认值为 None。
+        :return: 依次包含新单选、多选和判断题的三个 DataFrame。
+        """
         lesson_dir = player.lesson_dir if player is not None else JJFZAutoPlayer.lesson_dir
         lesson_path = Path(lesson_dir) / 'lessons.json'
         lessons = JJFZAutoPlayer.load_lessons(str(lesson_path))
@@ -232,7 +297,12 @@ class Exam(BaseExam):
 
 
     def finish_many_lesson_exams(self, echos: int=30):
-        player = JJFZAutoPlayer(self.cookies)
+        """
+        多轮完成全部章节测试，并合并保存收集到的新题。
+        
+        :param echos: 批量执行轮数。默认值为 30。
+        """
+        player = JJFZAutoPlayer(self.headers)
         player.load_questions()
         new_radios, new_checkboxes, new_yes_or_nos = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
         for i in range(echos):
@@ -243,38 +313,3 @@ class Exam(BaseExam):
         if len(new_radios) > 0:
             player.update_questions(new_radios, new_checkboxes, new_yes_or_nos, pd.DataFrame())
 
-
-def main():
-    parser = argparse.ArgumentParser(description='积极分子考试工具')
-    parser.add_argument(
-        '--cookies-file', default='cookies.json',
-        help='cookies JSON 文件路径（默认 cookies.json）',
-    )
-    parser.add_argument(
-        '--mode',
-        choices=['end', 'lesson'],
-        default='end',
-        help='运行模式：end 为综合考试，lesson 为章节测试',
-    )
-    parser.add_argument('--echos', type=int, default=30, help='设置批量执行次数')
-    args = parser.parse_args()
-
-    try:
-        cookies = load_cookies(args.cookies_file)
-    except FileNotFoundError:
-        print(f"❌ 找不到 cookies 文件: {args.cookies_file}")
-        print("   请从 cookies.example.json 复制一份，填入你的登录信息")
-        sys.exit(1)
-    except ValueError as e:
-        print(f"❌ {e}")
-        sys.exit(1)
-
-    exam = Exam(cookies=cookies)
-    if args.mode == 'end':
-        exam.finish_many_exams(echos=args.echos)
-    else:
-        exam.finish_many_lesson_exams(echos=args.echos)
-
-
-if __name__ == '__main__':
-    main()

@@ -1,12 +1,29 @@
-﻿# 默认忽略的文件
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# --- 虚拟环境 ---
+.venv/
+
+# --- 敏感凭据 ---
+cookies.json
+headers.json
+.env
+.env.*
+!.env.example
+
+# --- IDE ---
+.idea
+.vscode/
+*.swp
+*.swo
+
+# --- 之前已有 ---
 /shelf/
-# 基于编辑器的 HTTP 客户端请求
 /httpRequests/
-# Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-.idea
-.venv/
-*.pyc
-# 用于检查scripts[7]内容的文件
-dxpx/jjfz/1.js

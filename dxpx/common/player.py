@@ -2,67 +2,154 @@ import html
 import json
 import os
 import re
+import tempfile
 from typing import Optional, Tuple, List
 
 import numpy as np
 import pandas as pd
 from pypinyin import lazy_pinyin
 
+from dxpx.common.login import AuthSession
+
 
 class BaseAutoPlayer:
     question_dir = './temp'
     lesson_dir = './temp'
 
-    def __init__(self, cookies: dict):
+    def __init__(self, headers: dict, stage: int = 43):
+        """
+        初始化实例状态。
+        
+        :param headers: 请求头字典；认证请求通常需包含 Cookie，提交学习或答题记录时还需 _xsrf。
+        :param stage: 培训阶段标识。默认值为 43。
+        """
         self.ts_list = []
-        self.cookies = cookies
-        self.headers = {}
+        self.headers = headers
+        self.session = AuthSession(headers)
+        self.stage = stage
         self.radio_df = pd.DataFrame()
         self.checkbox_df = pd.DataFrame()
         self.yes_or_no_df = pd.DataFrame()
         self.gap_filling_df = pd.DataFrame()
 
     def get_lessons(self):
+        """
+        获取当前培训阶段的课程标识列表。
+        
+        :return: list[str]；从页面提取的课程标识。
+        :raises NotImplementedError: 基类仅定义接口，需由子类覆写后调用。
+        """
         raise NotImplementedError("未实现")
 
     def get_required_lessons(self, lesson_id: int, page: int = 1):
+        """
+        获取指定课程、页码的必修视频及分页信息。
+        
+        :param lesson_id: 课程或章节标识。
+        :param page: 课程列表或播放页的页码，从 1 开始。默认值为 1。
+        :return: 由子类定义的视频标识集合及分页信息。
+        :raises NotImplementedError: 基类仅定义接口，需由子类覆写后调用。
+        """
         raise NotImplementedError("未实现")
 
     def get_lesson_r_id(self, video_id: int, resource_id: int, page: int = 1):
+        """
+        从视频播放页面提取观看记录标识。
+        
+        :param video_id: 视频标识。
+        :param resource_id: 视频资源标识；部分播放链接允许为 None。
+        :param page: 课程列表或播放页的页码，从 1 开始。默认值为 1。
+        :return: 由子类定义的观看记录标识或标识组合。
+        :raises NotImplementedError: 基类仅定义接口，需由子类覆写后调用。
+        """
         raise NotImplementedError("未实现")
 
     def check_record(self, lesson_id: int, video_id: int, resource_id: int, r_id: int):
+        """
+        向平台提交指定视频的观看记录。
+        
+        :param lesson_id: 课程或章节标识。
+        :param video_id: 视频标识。
+        :param resource_id: 视频资源标识；部分播放链接允许为 None。
+        :param r_id: 视频观看记录标识。
+        :return: bool；平台确认接受记录时为 True，否则为 False。
+        :raises NotImplementedError: 基类仅定义接口，需由子类覆写后调用。
+        """
         raise NotImplementedError("未实现")
 
     def get_course_ware_extra_ids(self, v_id: int):
+        """
+        从微课件或专家讲座播放页面提取观看记录和资源标识。
+        
+        :param v_id: 用于加载播放页的视频标识。
+        :return: 二元组 (r_id, resource_id)，分别为观看记录标识和资源标识。
+        :raises NotImplementedError: 基类仅定义接口，需由子类覆写后调用。
+        """
         raise NotImplementedError("未实现")
 
     def get_exam_paper(self, r_id: int):
+        """
+        获取已完成综合考试的题目及正确答案。
+        
+        :param r_id: 已完成综合考试的结果标识。
+        :return: 四元组 (radios, checkboxes, yes_or_nos, gap_fillings)，每项为题目字典列表。
+        :raises NotImplementedError: 基类仅定义接口，需由子类覆写后调用。
+        """
         raise NotImplementedError("未实现")
 
     def get_lesson_exam_paper(self, rid: int):
+        """
+        获取已完成章节测试的题目及正确答案。
+        
+        :param rid: 章节测试结果标识。
+        :return: 四元组 (radios, checkboxes, yes_or_nos, gap_fillings)，每项为题目字典列表。
+        :raises NotImplementedError: 基类仅定义接口，需由子类覆写后调用。
+        """
         raise NotImplementedError("未实现")
 
     def get_exam_list(self):
+        """
+        获取已完成综合考试的结果标识列表。
+        
+        :return: list[int]；综合考试结果标识列表。
+        :raises NotImplementedError: 基类仅定义接口，需由子类覆写后调用。
+        """
         raise NotImplementedError("未实现")
 
     def get_lesson_exam_list(self):
+        """
+        获取已完成章节测试的结果标识列表。
+        
+        :return: list[int]；章节测试结果标识列表。
+        :raises NotImplementedError: 基类仅定义接口，需由子类覆写后调用。
+        """
         raise NotImplementedError("未实现")
 
     def update_from_exam_results(self):
+        """
+        从已完成考试的结果中收集新题，更新并保存本地题库。
+        :raises NotImplementedError: 基类仅定义接口，需由子类覆写后调用。
+        """
         raise NotImplementedError("未实现")
 
     @staticmethod
     def load_lessons(file_path='./temp/lessons.json'):
+        """
+        从 JSON 文件加载本地课程记录。
+        
+        :param file_path: 本地课程 JSON 文件路径。默认值为 './temp/lessons.json'。
+        :return: JSON 解析结果；通常为包含 lesson_id 和 id_params 的课程字典列表。
+        """
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
 
     @staticmethod
     def extract_required_lessons_info(text: str):
         """
-        从 html 页面提取课程信息
-        :param text: 页面 HTML 内容
-        :return: (id_pairs, rest_ids, total_pages)
+        从课程列表页面提取去重后的资源标识和总页数。
+        
+        :param text: 待解析的课程列表页面 HTML 文本。
+        :return: 三元组 (id_pairs, rest_ids, total_pages)；前两项为字符串标识列表，总页数默认为 1。
         """
         pattern = r'<a\s+class="(?:dd_cut_on)?"[^>]*href="[^"]*v_id=(\d+)&r_id=(\d+)[^"]*"[^>]*>'
         id_pairs = re.findall(pattern, text)
@@ -90,78 +177,22 @@ class BaseAutoPlayer:
 
     def get_lessons_and_save(self, output_dir: Optional[str] = None, save=False) -> Tuple[List, List]:
         """
-        获取课程列表并保存到 lessons.json。
-        两步法：
-            1) 从 /jjfz/lesson/video 拿 v_id 种子（可能不完整）
-            2) 对每个 v_id 种子走 /jjfz/play 拿**完整**的 (v_id, r_id) 对
-        :param output_dir: lessons.json 保存目录，默认 self.lesson_dir
-        :param save: 是否写入磁盘
-        :return: 收集失败的课程信息列表；已收集的 lessons 列表（每个元素 {'lesson_id': ..., 'id_params': [...]}）
+        遍历课程分页，提交视频记录并按需保存课程信息。
+        
+        :param output_dir: 输出目录；为 None 时使用实例配置的对应保存目录。默认值为 None。
+        :param save: 是否将结果保存到本地文件。默认值为 False。
+        :return: 二元组 (failed_list, lessons)，分别为提交失败的记录列表和收集到的课程列表。
+        :raises NotImplementedError: 基类仅定义接口，需由子类覆写后调用。
         """
-        output_dir = output_dir or self.lesson_dir
-        lesson_ids = self.get_lessons()
-        lessons = []
-        failed_list = []
-        for lesson_id in lesson_ids:
-            page_num = 1
-            while True:
-                id_pairs, courseware_ids, total_pages = self.get_required_lessons(lesson_id=lesson_id, page=page_num)
-                page_num += 1
-                id_params = []
-                for id_pair in id_pairs:
-                    video_id = int(id_pair[0])
-                    resource_id = int(id_pair[1])
-                    r_id = self.get_lesson_r_id(video_id=video_id, resource_id=resource_id, page=page_num)
-                    success = self.check_record(
-                        lesson_id=lesson_id,
-                        video_id=video_id,
-                        resource_id=resource_id,
-                        r_id=r_id,
-                    )
-                    if not success:
-                        failed_list.append({
-                            'lesson_id': lesson_id,
-                            'video_id': video_id,
-                            'resource_id': resource_id,
-                        })
-                    id_params.append((video_id, resource_id, r_id))
-                print(f"课程{lesson_id}的相关参数已获取")
-
-                for video_id in courseware_ids:
-                    r_id, resource_id = self.get_course_ware_extra_ids(v_id=int(video_id))
-                    r_id = int(r_id)
-                    resource_id = int(resource_id)
-                    success = self.check_record(
-                        lesson_id=lesson_id,
-                        video_id=int(video_id),
-                        resource_id=resource_id,
-                        r_id=r_id,
-                    )
-                    if not success:
-                        failed_list.append({
-                            'lesson_id': lesson_id,
-                            'video_id': int(video_id),
-                            'resource_id': resource_id,
-                        })
-                    id_params.append((int(video_id), resource_id, r_id))
-
-                lessons.append({
-                    'lesson_id': lesson_id,
-                    'id_params': [
-                        {'video_id': video_id, 'resource_id': resource_id}
-                        for video_id, resource_id, _ in id_params
-                    ],
-                })
-                if page_num > total_pages:
-                    break
-        if save:
-            os.makedirs(output_dir, exist_ok=True)
-            with open(os.path.join(output_dir, 'lessons.json'), 'w', encoding='utf-8') as f:
-                json.dump(lessons, f, ensure_ascii=False, indent=4)
-            print(f"lessons数据已保存到{output_dir}/lessons.json文件")
-        return failed_list, lessons
+        raise NotImplementedError("未实现")
 
     def finish_lessons_from_local(self, lesson_path: Optional[str] = None) -> list:
+        """
+        读取本地课程信息，依次提交其中的视频观看记录。
+        
+        :param lesson_path: 本地课程 JSON 文件路径；为 None 时使用课程目录下的 lessons.json。默认值为 None。
+        :return: list[dict]；提交失败的课程、视频和资源标识。
+        """
         lesson_path = lesson_path or os.path.join(self.lesson_dir, 'lessons.json')
         lessons = self.load_lessons(lesson_path)
         failed_lessons = []
@@ -185,6 +216,14 @@ class BaseAutoPlayer:
         return failed_lessons
 
     def collect_unique_questions(self, r_ids: list, lesson_r_ids: Optional[list] = None, save: bool = False):
+        """
+        汇总考试及章节测试题目，按题干去重、排序并按需保存。
+        
+        :param r_ids: 已完成综合考试的结果标识列表。
+        :param lesson_r_ids: 已完成章节测试的结果标识列表；为 None 时不收集章节测试题目。默认值为 None。
+        :param save: 是否将结果保存到本地文件。默认值为 False。
+        :return: 依次包含单选、多选、判断、填空题的四个 DataFrame。
+        """
         lesson_r_ids = lesson_r_ids or []
         questions_by_type = {
             'radios': {},
@@ -193,6 +232,7 @@ class BaseAutoPlayer:
             'gap_fillings': {},
         }
 
+        # 综合考试和章节测试使用不同结果接口，按拼接位置选择调用方式。
         all_r_ids = list(r_ids) + list(lesson_r_ids)
         for i, r_id in enumerate(all_r_ids):
             if i < len(r_ids):
@@ -200,6 +240,7 @@ class BaseAutoPlayer:
             else:
                 radios, checkboxes, yes_or_nos, gap_fillings = self.get_lesson_exam_paper(r_id)
 
+            # 以题干作为去重键，保留首次收集到的题目及答案。
             for radio in radios:
                 questions_by_type['radios'].setdefault(radio['title'], radio)
             for checkbox in checkboxes:
@@ -221,6 +262,11 @@ class BaseAutoPlayer:
         return radio_df, checkbox_df, yes_or_no_df, gap_filling_df
 
     def load_questions(self, input_dir: Optional[str] = None):
+        """
+        加载本地存在的 Parquet 题库文件到实例属性。
+        
+        :param input_dir: 题库目录；为 None 时使用实例的 question_dir。默认值为 None。
+        """
         input_dir = input_dir or self.question_dir
 
         question_files = {
@@ -235,6 +281,14 @@ class BaseAutoPlayer:
                 setattr(self, attr, pd.read_parquet(file_path))
 
     def search_answer(self, question: str, question_type: str):
+        """
+        按题型和完整题干查找本地题库中的答案。
+        
+        :param question: 待匹配的完整题干文本。
+        :param question_type: 题型，可取 radio、checkbox、yes_or_no 或 gap_filling。
+        :return: 匹配题目的 correct_answer 字段值；未找到时返回空字符串。
+        :raises ValueError: 传入了不支持的题型。
+        """
         if question_type == 'radio':
             df = self.radio_df
         elif question_type == 'checkbox':
@@ -258,20 +312,37 @@ class BaseAutoPlayer:
             new_yes_or_nos_df: pd.DataFrame,
             new_gap_fillings_df: pd.DataFrame,
             output_dir: Optional[str] = None):
+        """
+        合并新旧题库，按题干去重、拼音排序并重排索引后保存。
+        
+        :param new_radios_df: 待合并的新单选题 DataFrame。
+        :param new_checkboxes_df: 待合并的新多选题 DataFrame。
+        :param new_yes_or_nos_df: 待合并的新判断题 DataFrame。
+        :param new_gap_fillings_df: 待合并的新填空题 DataFrame。
+        :param output_dir: 输出目录；为 None 时使用实例配置的对应保存目录。默认值为 None。
+        """
         output_dir = output_dir or self.question_dir
         if self.radio_df.empty or self.checkbox_df.empty or self.yes_or_no_df.empty or self.gap_filling_df.empty:
             self.load_questions(output_dir)
 
         def merge_and_deduplicate(existing_df, new_df):
+            """
+            合并两份题库，按题干保留首条记录并重排索引。
+            
+            :param existing_df: 已有题库 DataFrame。
+            :param new_df: 待合并的新题 DataFrame。
+            :return: DataFrame；合并、去重和排序后的题库，新表为空时仅重排原表索引。
+            """
             if new_df.empty:
-                return existing_df
+                return existing_df.reset_index(drop=True)
 
+            # 原题在前，重复题保留已有答案；排序后重排索引用于文本编号。
             combined_df = pd.concat([existing_df, new_df], axis=0, ignore_index=True)
             deduplicated_df = combined_df.drop_duplicates(subset=['title'], keep='first')
             return deduplicated_df.sort_values(
                 by='title',
                 key=lambda x: x.apply(lambda y: ''.join(lazy_pinyin(str(y)))),
-            )
+            ).reset_index(drop=True)
 
         self.radio_df = merge_and_deduplicate(self.radio_df, new_radios_df)
         self.checkbox_df = merge_and_deduplicate(self.checkbox_df, new_checkboxes_df)
@@ -284,10 +355,11 @@ class BaseAutoPlayer:
     @staticmethod
     def extract_questions(page_html: str, pattern: str) -> Tuple[List[dict], List[dict], List[dict], List[dict]]:
         """
-        从HTML中提取题目
-        :param page_html: HTML内容
-        :param pattern: 正则表达式模式
-        :return: 提取到的题目列表: 单选题、多选题、判断题、填空题
+        从结果页面中解析题干、选项和正确答案，并按题型分类。
+        
+        :param page_html: 待解析的考试结果页面 HTML 文本。
+        :param pattern: 用于匹配单个题目内容块的正则表达式。
+        :return: 四元组 (radios, checkboxes, yes_or_nos, gap_fillings)，每项为题目字典列表。
         """
         error_subs = re.findall(pattern, page_html, re.DOTALL)
         radios = []
@@ -325,6 +397,7 @@ class BaseAutoPlayer:
             else:
                 continue
 
+            # 题型由题干前缀确定，入库前移除该前缀。
             prefix = item['title'][:5]
             item['title'] = item['title'][5:].strip()
             if prefix == '【单选题】':
@@ -349,6 +422,15 @@ class BaseAutoPlayer:
             yes_or_nos_df: pd.DataFrame,
             gap_fillings_df: pd.DataFrame,
             output_dir: str = './temp'):
+        """
+        将四类题库分别保存为便于阅读的文本文件。
+        
+        :param radios_df: 单选题 DataFrame。
+        :param checkboxes_df: 多选题 DataFrame。
+        :param yes_or_nos_df: 判断题 DataFrame。
+        :param gap_fillings_df: 填空题 DataFrame。
+        :param output_dir: 输出目录；为 None 时使用实例配置的对应保存目录。默认值为 './temp'。
+        """
         os.makedirs(output_dir, exist_ok=True)
 
         question_types = [
@@ -369,6 +451,7 @@ class BaseAutoPlayer:
                     f.write(f"{title}\n")
 
                     options = question_row.get('options')
+                    # 数组不能直接转为单个布尔值，需单独判断是否含选项。
                     if isinstance(options, np.ndarray):
                         has_options = options.size > 0
                     else:
@@ -396,12 +479,28 @@ class BaseAutoPlayer:
             yes_or_nos_df: pd.DataFrame,
             gap_fillings_df: pd.DataFrame,
             output_dir: str = './temp'):
+        """
+        使用 pyarrow 将四类题库保存为不含索引的 Parquet 文件。
+        
+        :param radios_df: 单选题 DataFrame。
+        :param checkboxes_df: 多选题 DataFrame。
+        :param yes_or_nos_df: 判断题 DataFrame。
+        :param gap_fillings_df: 填空题 DataFrame。
+        :param output_dir: 输出目录；为 None 时使用实例配置的对应保存目录。默认值为 './temp'。
+        """
         os.makedirs(output_dir, exist_ok=True)
-        radios_df.to_parquet(os.path.join(output_dir, 'radios.parquet'), index=False)
-        checkboxes_df.to_parquet(os.path.join(output_dir, 'checkboxes.parquet'), index=False)
-        yes_or_nos_df.to_parquet(os.path.join(output_dir, 'yes_or_nos.parquet'), index=False)
-        gap_fillings_df.to_parquet(os.path.join(output_dir, 'gap_fillings.parquet'), index=False)
+        radios_df.to_parquet(os.path.join(output_dir, 'radios.parquet'), index=False, engine='pyarrow')
+        checkboxes_df.to_parquet(os.path.join(output_dir, 'checkboxes.parquet'), index=False, engine='pyarrow')
+        yes_or_nos_df.to_parquet(os.path.join(output_dir, 'yes_or_nos.parquet'), index=False, engine='pyarrow')
+        gap_fillings_df.to_parquet(os.path.join(output_dir, 'gap_fillings.parquet'), index=False, engine='pyarrow')
 
     @staticmethod
     def sort_by_pinyin(items):
+        """
+        按题干的拼音顺序排列题目，缺少题干时使用空排序键。
+        
+        :param items: 待排序的题目字典序列，题干位于 title 字段。
+        :return: list；排序后的新题目列表，不修改传入列表。
+        """
         return sorted(items, key=lambda x: ''.join(lazy_pinyin(x['title'])) if 'title' in x else '')
+

@@ -1,88 +1,106 @@
 import re
 
-import argparse
-import requests
-import sys
-from pathlib import Path
-
-# if __package__ is None or __package__ == '':
-#     sys.path.append(str(Path(__file__).resolve().parents[2]))
-
-from dxpx.common.cookies import load_cookies
 from dxpx.common.exam import BaseExam
 from dxpx.fzdx.fzdx import FZDXAutoPlayer
 
 class FZDXExam(BaseExam):
     player_cls = FZDXAutoPlayer
 
-    def __init__(self, cookies: dict):
-        super().__init__(cookies)
-        self.headers = {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7',
-            'Connection': 'keep-alive',
-            'Referer': 'https://dxpx.uestc.edu.cn/fzdx',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'same-origin',
-            'Sec-Fetch-User': '?1',
-            'Upgrade-Insecure-Requests': '1',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',
-            'sec-ch-ua': '"Chromium";v="148", "Google Chrome";v="148", "Not/A)Brand";v="99"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
-        }
+    def __init__(self, headers: dict):
+        """
+        初始化实例状态。
+        
+        :param headers: 请求头字典；认证请求通常需包含 Cookie，提交学习或答题记录时还需 _xsrf。
+        """
+        super().__init__(headers)
 
     def start_exam(self):
+        """
+        请求综合考试页面，建立考试状态。
+        
+        :return: requests.Response；已检查 HTTP 状态的考试页面响应。
+        """
         url = 'https://dxpx.uestc.edu.cn/fzdx/exam_center/exam'
-        response = requests.get(url, headers=self.headers, cookies=self.cookies)
+        params = {
+            'stg': self.stage,
+        }
+        response = self.session.get(url, headers=self.headers, params=params, timeout=30)
+        response.raise_for_status()
         return response
 
     def get_question(self, question_id: int):
+        """
+        获取综合考试中指定序号的题目。
+        
+        :param question_id: 题目在当前试卷中的序号，从 1 开始。
+        :return: 三元组 (title, options, qid)；options 中每项为 (选项文本, 答案标识)。
+        """
         params = {
             'i': question_id,
+            'stg': self.stage,
         }
         url = 'https://dxpx.uestc.edu.cn/fzdx/exam_center/get_question'
-        response = requests.get(url=url, params=params, cookies=self.cookies, headers=self.headers)
+        response = self.session.get(url=url, params=params, headers=self.headers, timeout=30)
+        response.raise_for_status()
         return self.extract_question(response.text)
 
     def answer_question(self, question_id: int, qid: int, answer: str):
         """
-        回答问题
-        :param question_id: 问题ID
-        :param qid: 问题QID
-        :param answer: 答案。单选：某个选项的answer_id；多选：多个answer_id，用“|”相连；判断：某个选项的answer_id；填空：字符串；
-        :return: 是否回答成功
+        向平台提交一道综合考试题目的答案。
+        
+        :param question_id: 题目在当前试卷中的序号，从 1 开始。
+        :param qid: 平台分配的题目标识，不同于题目序号。
+        :param answer: 提交的答案；选择题为选项标识，多选用 | 分隔，填空题为答案文本。
+        :return: bool；平台接受答案时为 True，否则为 False。
         """
         params = {
             'i': question_id,
+            'stg': self.stage,
         }
 
         data = {
             'i': question_id,
             'qid': qid,
             'answer': answer,
-            '_xsrf': self.cookies['_xsrf'],
+            '_xsrf': self.headers['_xsrf'],
         }
         url = 'https://dxpx.uestc.edu.cn/fzdx/exam_center/answer'
-        response = requests.post(url=url, params=params, cookies=self.cookies, headers=self.headers, data=data)
+        response = self.session.post(url=url, params=params, headers=self.headers, data=data, timeout=30)
         if response.status_code == 200:
             if response.json()['code'] == 1:
                 return True
         return False
 
     def submit_exam(self):
+        """
+        提交当前综合考试试卷。
+        
+        :return: bool；平台确认提交成功时为 True，否则为 False。
+        """
         data = {
-            '_xsrf': self.cookies['_xsrf'],
+            '_xsrf': self.headers['_xsrf'],
         }
         url = 'https://dxpx.uestc.edu.cn/fzdx/exam_center/submit'
 
-        response = requests.post(url=url, cookies=self.cookies, headers=self.headers, data=data)
+        params = {
+            'stg': self.stage,
+        }
+        response = self.session.post(url=url, headers=self.headers, params=params, data=data, timeout=30)
+        response.raise_for_status()
         return response.json()['code'] == 1
 
     def get_exam_result(self):
+        """
+        从综合考试结果页面提取结果标识。
+        
+        :return: 匹配到的结果标识字符串；未匹配到时返回整数 0。
+        """
         url = 'https://dxpx.uestc.edu.cn/fzdx/exam_center/result'
-        response = requests.get(url=url, cookies=self.cookies, headers=self.headers)
+        params = {
+            'stg': self.stage,
+        }
+        response = self.session.get(url=url, headers=self.headers, params=params, timeout=30)
+        response.raise_for_status()
         pattern = r'rid=(\d+)'
         match = re.search(pattern, response.text)
         if match:
@@ -90,28 +108,3 @@ class FZDXExam(BaseExam):
         else:
             rid = 0
         return rid
-
-def main():
-    parser = argparse.ArgumentParser(description='发展对象考试工具')
-    parser.add_argument(
-        '--cookies-file', default='cookies.json',
-        help='cookies JSON 文件路径（默认 cookies.json）',
-    )
-    parser.add_argument('--echos', type=int, default=10, help='设置批量完成考试的次数')
-    args = parser.parse_args()
-
-    try:
-        cookies = load_cookies(args.cookies_file)
-    except FileNotFoundError:
-        print(f"❌ 找不到 cookies 文件: {args.cookies_file}")
-        print("   请从 cookies.example.json 复制一份，填入你的登录信息")
-        sys.exit(1)
-    except ValueError as e:
-        print(f"❌ {e}")
-        sys.exit(1)
-
-    exam = FZDXExam(cookies=cookies)
-    exam.finish_many_exams(echos=args.echos)
-
-if __name__ == '__main__':
-    main()

@@ -1,0 +1,20 @@
+[project]
+name = "uestc-dxpx"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "yiyongqiang", email = "yiyongqiang@byaidata.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pyarrow==22.0.0",
+    "numpy>=2.5.4",
+    "pandas>=3.1.1",
+    "pypinyin>=0.55.0",
+    "requests>=2.34.2",
+    "tqdm>=4.70.1",
+    "ddddocr>=1.6.1",
+    "python-dotenv>=1.2.4",
+]
+
+
