@@ -8,13 +8,14 @@ from dxpx.jjfz.jjfz import JJFZAutoPlayer
 class Exam(BaseExam):
     player_cls = JJFZAutoPlayer
 
-    def __init__(self, headers):
+    def __init__(self, headers: dict, stage: int = 42):
         """
         初始化实例状态。
         
         :param headers: 请求头字典；认证请求通常需包含 Cookie，提交学习或答题记录时还需 _xsrf。
+        :param stage: 积极分子培训阶段标识，默认值为 42。
         """
-        super().__init__(headers)
+        super().__init__(headers, stage=stage)
 
     def start_exam(self):
         """

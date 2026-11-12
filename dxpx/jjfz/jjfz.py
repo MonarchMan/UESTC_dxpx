@@ -26,26 +26,27 @@ def load_lessons(file_path='./temp/lessons.json'):
 class JJFZAutoPlayer(BaseAutoPlayer):
     question_dir = 'dxpx/jjfz/temp'
     lesson_dir = 'dxpx/jjfz/temp'
+    max_pages_per_lesson = 100
 
-    def __init__(self, headers: dict):
+    def __init__(self, headers: dict, stage: int = 42):
         """
         初始化实例状态。
         
         :param headers: 已加载的身份请求头，补充页面需要的其他请求头后继续使用。
+        :param stage: 积极分子培训阶段标识，默认值为 42。
         """
-        super().__init__(headers)
+        super().__init__(headers, stage=stage)
+        # 导航请求不能携带旧版 XHR 标头，保留共享身份及其保存路径。
+        for key in list(self.headers):
+            if key.lower() in {'content-type', 'x-requested-with', 'origin',
+                               'sec-fetch-dest', 'sec-fetch-mode', 'sec-fetch-site'}:
+                del self.headers[key]
         self.headers.update({
-            'Accept': 'application/json, text/javascript, */*; q=0.01',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
             'Connection': 'keep-alive',
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            'Origin': 'https://dxpx.uestc.edu.cn',
-            'Referer': 'https://dxpx.uestc.edu.cn/jjfz/play?v_id=12722&r_id=52564&r=video&t=2&pg=1',
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-origin',
+            'Referer': f'https://dxpx.uestc.edu.cn/jjfz/?stg={self.stage}',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
-            'X-Requested-With': 'XMLHttpRequest',
             'sec-ch-ua': '"Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"',
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"Windows"',
@@ -246,7 +247,9 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         :param r_id: 视频观看记录标识。
         :return: bool；平台确认接受记录时为 True，否则为 False。
         """
-        url = 'https://dxpx.uestc.edu.cn/jjfz/lesson/resource_record'
+        if not r_id:
+            return False
+        url = 'https://dxpx.uestc.edu.cn/jjfz/play/resource_record'
         data = {
             'rid': r_id,
             'lesson_id': lesson_id,
@@ -267,26 +270,85 @@ class JJFZAutoPlayer(BaseAutoPlayer):
 
     def get_lessons_and_save(self, output_dir: Optional[str] = None, save=False) -> Tuple[List, List]:
         """
-        遍历课程分页，提交视频记录并按需保存课程信息。
-        
-        :param output_dir: 输出目录；为 None 时使用实例配置的对应保存目录。默认值为 None。
-        :param save: 是否将结果保存到本地文件。默认值为 False。
-        :return: 二元组 (failed_list, lessons)，分别为提交失败的记录列表和收集到的课程列表。
+        遍历课程分页，按资源对去重后提交观看记录并按需保存。
+
+        :param output_dir: 课程保存目录，为 None 时使用 self.lesson_dir。
+        :param save: 是否将采集结果保存为 lessons.json，默认值为 False。
+        :return: 二元组 (failed_list, lessons)，分别为失败记录和采集到的课程列表。
+        :raises RuntimeError: 未获取课程或资源，或分页超出限制；不覆盖已有文件。
         """
         output_dir = output_dir or self.lesson_dir
         lesson_ids = self.get_lessons()
+        if not lesson_ids:
+            raise RuntimeError(
+                "未获取到任何课程，可能登录已失效或页面结构变化；"
+                "已保留原有 lessons.json，未写入空结果"
+            )
+
         lessons = []
         failed_list = []
+        seen_lesson_ids = set()
         for lesson_id in lesson_ids:
-            page_num = 1
-            while True:
-                id_pairs, courseware_ids, total_pages = self.get_required_lessons(lesson_id=lesson_id, page=page_num)
-                page_num += 1
-                id_params = []
+            if lesson_id in seen_lesson_ids:
+                continue
+            seen_lesson_ids.add(lesson_id)
+
+            collected_pairs = []
+            # 单门课程内按 (video_id, resource_id) 去重，避免跨页或重复链接造成重复提交
+            seen_pairs = set()
+            page = 1
+            total_pages = 1
+            while page <= total_pages and page <= self.max_pages_per_lesson:
+                id_pairs, courseware_ids, total_pages = self.get_required_lessons(
+                    lesson_id=lesson_id, page=page
+                )
+                total_pages = max(int(total_pages or 1), 1)
+
                 for id_pair in id_pairs:
                     video_id = int(id_pair[0])
                     resource_id = int(id_pair[1])
-                    r_id = self.get_lesson_r_id(video_id=video_id, resource_id=resource_id, page=page_num)
+                    key = (video_id, resource_id)
+                    if key in seen_pairs:
+                        continue
+                    seen_pairs.add(key)
+
+                    r_id = self.get_lesson_r_id(
+                        video_id=video_id, resource_id=resource_id, page=page
+                    )
+                    success = False
+                    if r_id:
+                        success = self.check_record(
+                            lesson_id=lesson_id,
+                            video_id=video_id,
+                            resource_id=resource_id,
+                            r_id=r_id,
+                        )
+                    if not success:
+                        failed_list.append({
+                            'lesson_id': lesson_id,
+                            'video_id': video_id,
+                            'resource_id': resource_id,
+                            'reason': 'check_record_failed' if r_id else 'no_rid',
+                        })
+                    collected_pairs.append((video_id, resource_id))
+
+                for video_id in courseware_ids:
+                    video_id = int(video_id)
+                    extras = self.get_course_ware_extra_ids(v_id=video_id)
+                    if not extras:
+                        failed_list.append({
+                            'lesson_id': lesson_id,
+                            'video_id': video_id,
+                            'resource_id': None,
+                            'reason': 'no_resource_id',
+                        })
+                        continue
+                    r_id, resource_id = map(int, extras)
+                    key = (video_id, resource_id)
+                    if key in seen_pairs:
+                        continue
+                    seen_pairs.add(key)
+
                     success = self.check_record(
                         lesson_id=lesson_id,
                         video_id=video_id,
@@ -298,37 +360,34 @@ class JJFZAutoPlayer(BaseAutoPlayer):
                             'lesson_id': lesson_id,
                             'video_id': video_id,
                             'resource_id': resource_id,
+                            'reason': 'check_record_failed',
                         })
-                    id_params.append((video_id, resource_id, r_id))
-                print(f"课程{lesson_id}的相关参数已获取")
+                    collected_pairs.append((video_id, resource_id))
 
-                for video_id in courseware_ids:
-                    r_id, resource_id = self.get_course_ware_extra_ids(v_id=int(video_id))
-                    r_id = int(r_id)
-                    resource_id = int(resource_id)
-                    success = self.check_record(
-                        lesson_id=lesson_id,
-                        video_id=int(video_id),
-                        resource_id=resource_id,
-                        r_id=r_id,
-                    )
-                    if not success:
-                        failed_list.append({
-                            'lesson_id': lesson_id,
-                            'video_id': int(video_id),
-                            'resource_id': resource_id,
-                        })
-                    id_params.append((int(video_id), resource_id, r_id))
+                print(f"课程{lesson_id}第{page}页的相关参数已获取")
+                page += 1
 
-                lessons.append({
-                    'lesson_id': lesson_id,
-                    'id_params': [
-                        {'video_id': video_id, 'resource_id': resource_id}
-                        for video_id, resource_id, _ in id_params
-                    ],
-                })
-                if page_num > total_pages:
-                    break
+            if page <= total_pages:
+                raise RuntimeError(f'课程{lesson_id}分页超过 {self.max_pages_per_lesson} 页，未覆盖已有 lessons.json')
+
+            if not collected_pairs:
+                print(f"警告：课程{lesson_id}未采集到任何视频资源，已跳过")
+                continue
+
+            lessons.append({
+                'lesson_id': lesson_id,
+                'id_params': [
+                    {'video_id': video_id, 'resource_id': resource_id}
+                    for video_id, resource_id in collected_pairs
+                ],
+            })
+
+        if not lessons:
+            raise RuntimeError(
+                "所有课程均未采集到视频资源，可能登录已失效或页面结构变化；"
+                "已保留原有 lessons.json，未写入空结果"
+            )
+
         if save:
             os.makedirs(output_dir, exist_ok=True)
             with open(os.path.join(output_dir, 'lessons.json'), 'w', encoding='utf-8') as f:
@@ -336,7 +395,7 @@ class JJFZAutoPlayer(BaseAutoPlayer):
             print(f"lessons数据已保存到{output_dir}/lessons.json文件")
         return failed_list, lessons
 
-    def get_required_lessons(self, lesson_id: int, page: int = 1) -> list[int]:
+    def get_required_lessons(self, lesson_id: int, page: int = 1) -> tuple[list, list, int]:
         """
         获取指定课程、页码的必修视频及分页信息。
         
@@ -357,12 +416,12 @@ class JJFZAutoPlayer(BaseAutoPlayer):
 
     def get_lesson_r_id(self, video_id: int, resource_id: int, page: int = 1) -> int:
         """
-        从播放页第八个脚本中提取包含完整资源字段的观看记录标识。
+        扫描播放页脚本，提取与请求视频、资源一致的观看记录标识。
         
         :param video_id: 视频标识。
         :param resource_id: 视频资源标识；部分播放链接允许为 None。
         :param page: 课程列表或播放页的页码，从 1 开始。默认值为 1。
-        :return: int；匹配到的观看记录标识，脚本不足或未匹配到时为 0。
+        :return: int；匹配到的观看记录标识，未找到对应资源时为 0。
         """
         params = {
             'v_id': video_id,
@@ -375,83 +434,99 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         url = 'https://dxpx.uestc.edu.cn/jjfz/play'
         response = self.session.get(url=url, params=params, headers=self.headers)
 
-        # 1) 取 /html/body/script[8]（XPath 1-indexed → Python list index 7）
+        # 脚本位置不固定，扫描全部脚本并校验记录所属的视频和资源。
         script_pattern = re.compile(r'<script\b[^>]*>(.*?)</script>', re.DOTALL | re.IGNORECASE)
         scripts = script_pattern.findall(response.text)
-        if len(scripts) < 8:
-            return 0
-        script_block = scripts[7]
-
-        # 2) 在 script_block 里找"4 字段齐全"的 rid
-        #    形如：rid: "N", resource_id: "M", video_id: "K", lesson_id: "L"
         rid_pattern = re.compile(
-            r'rid:\s*"(\d+)"\s*,\s*resource_id:\s*"(\d+)"\s*,\s*video_id:\s*"(\d+)"\s*,\s*lesson_id:\s*"(\d+)"'
+            r'''rid:\s*['"](\d+)['"]\s*,\s*resource_id:\s*['"](\d+)['"]\s*,\s*video_id:\s*['"](\d+)['"]\s*,\s*lesson_id:\s*['"](\d+)['"]'''
         )
-        match = rid_pattern.search(script_block)
-        if match:
-            return int(match.group(1))
+        for script_block in scripts:
+            for rid, matched_resource_id, matched_video_id, _ in rid_pattern.findall(script_block):
+                if int(matched_video_id) == int(video_id) and int(matched_resource_id) == int(resource_id):
+                    return int(rid)
         return 0
 
     def finish_single_lesson(self, lesson_id: int) -> dict:
         """
-        收集单个课程的视频资源对，去重后提交观看记录。
-        
+        遍历指定课程全部分页，去重后提交必修视频及相邻分节记录。
+
         :param lesson_id: 课程或章节标识。
-        :return: dict；success 和 failed 分别记录成功条目与包含失败原因的条目。
+        :return: dict；success、failed 为记录列表，accepted、attempted 为接受数和处理数。
+        :raises RuntimeError: 课程分页超过限制，避免将不完整采集误报为成功。
         """
         results = {'success': [], 'failed': []}
         seen_pairs = set()
-        v_ids = self.get_required_lessons(lesson_id)
-        for v_id in v_ids:
-            pairs = self.get_lesson_v_resource_id(v_id)
-            for video_id, resource_id in pairs:
-                if (video_id, resource_id) in seen_pairs:
-                    continue
-                seen_pairs.add((video_id, resource_id)) #去重，避免同一对视频被多个种子扫到时重复提交影响速度
-                r_id = self.get_lesson_r_id(video_id, resource_id)
-                if not r_id:
+        seen_seeds = set()
+        page = 1
+        total_pages = 1
+        while page <= total_pages and page <= self.max_pages_per_lesson:
+            id_pairs, courseware_ids, total_pages = self.get_required_lessons(lesson_id, page=page)
+            total_pages = max(int(total_pages or 1), 1)
+            pairs = [(int(v), int(r)) for v, r in id_pairs]
+            courseware_rids = {}
+            for video_id in dict.fromkeys(map(int, courseware_ids)):
+                extras = self.get_course_ware_extra_ids(v_id=video_id)
+                if not extras:
                     results['failed'].append({
                         'video_id': video_id,
-                        'resource_id': resource_id,
-                        'reason': 'no_rid',
+                        'resource_id': None,
+                        'reason': 'no_resource_id',
                     })
                     continue
-                ok = self.check_record(lesson_id, video_id, resource_id, r_id)
-                entry = {
-                    'video_id': video_id,
-                    'resource_id': resource_id,
-                    'r_id': r_id,
-                }
-                if ok:
-                    results['success'].append(entry)
-                else:
+                r_id, resource_id = map(int, extras)
+                pairs.append((video_id, resource_id))
+                courseware_rids[(video_id, resource_id)] = r_id
+
+            # 每页的种子只扫描一次，但同一视频的不同分节仍需分别提交。
+            for video_id in dict.fromkeys(v for v, _ in pairs):
+                if (video_id, page) not in seen_seeds:
+                    seen_seeds.add((video_id, page))
+                    pairs.extend(self.get_lesson_v_resource_id(video_id, page=page))
+            for video_id, resource_id in pairs:
+                key = (video_id, resource_id)
+                if key in seen_pairs:
+                    continue
+                seen_pairs.add(key)
+                r_id = courseware_rids.get(key)
+                if r_id is None:
+                    r_id = self.get_lesson_r_id(video_id, resource_id, page=page)
+                entry = {'video_id': video_id, 'resource_id': resource_id, 'r_id': r_id}
+                if not r_id:
+                    entry['reason'] = 'no_rid'
+                elif not self.check_record(lesson_id, video_id, resource_id, r_id):
                     entry['reason'] = 'check_record_failed'
-                    results['failed'].append(entry)
+                results['failed' if 'reason' in entry else 'success'].append(entry)
+            page += 1
+        if page <= total_pages:
+            raise RuntimeError(f'课程{lesson_id}分页超过 {self.max_pages_per_lesson} 页')
+        results['accepted'] = len(results['success'])
+        results['attempted'] = len(results['success']) + len(results['failed'])
         return results
 
     def finish_lessons(self, lesson_ids: list) -> list:
         """
-        依次提交多个课程的视频观看记录并汇总结果。
-        
+        依次提交多个课程的必修视频观看记录并汇总结果。
+
         :param lesson_ids: 需要处理的课程标识列表。
-        :return: list；存在失败观看记录的课程标识列表。
+        :return: list；有资源未被接口接受或未获取到资源的课程标识。
         """
         failed_lessons = []
-        total_success = 0
+        total_accepted = 0
         total_failed = 0
         for lid in lesson_ids:
             print(f'提交 lesson {lid}...')
             results = self.finish_single_lesson(lid)
             s_count = len(results['success'])
             f_count = len(results['failed'])
-            total_success += s_count
+            total_accepted += s_count
             total_failed += f_count
-            print(f'  成功 {s_count} 条, 失败 {f_count} 条')
+            print(f'  接口接受 {s_count} 条, 未接受 {f_count} 条')
             for entry in results['failed']:
-                print(f'    失败: {entry}')
-            if f_count > 0:
+                print(f'    未接受: {entry}')
+            if f_count > 0 or results['attempted'] == 0:
                 failed_lessons.append(lid)
-        print(f'\n总计: 成功 {total_success} 条, 失败 {total_failed} 条')
+        print(f'\n总计: 接口接受 {total_accepted} 条, 未接受 {total_failed} 条')
+        print('注意：接口接受仅代表服务器收录了观看记录，网站进度可能仍需时间刷新或未更新，请以网站实际进度为准。')
         return failed_lessons
 
     def get_lesson_v_resource_id(self, video_id: int, page: int = 1) -> list[tuple[int, int]]:
@@ -479,12 +554,12 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         )
         return [(int(v), int(r)) for v, r in pattern.findall(response.text)]
 
-    def get_course_ware_extra_ids(self, v_id:int):
+    def get_course_ware_extra_ids(self, v_id: int) -> tuple[str, str] | None:
         """
         从微课件或专家讲座播放页面提取观看记录和资源标识。
         
         :param v_id: 用于加载播放页的视频标识。
-        :return: tuple[str, str]；观看记录标识与资源标识。
+        :return: tuple[str, str]；观看记录标识与资源标识，未找到时为 None。
         """
         params = {
             'v_id': v_id,
@@ -494,9 +569,9 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         }
         url = 'https://dxpx.uestc.edu.cn/jjfz/play'
         response = self.session.get(url=url, params=params, headers=self.headers)
-        pattern = r'rid: "(\d+)",\s+resource_id: "(\d+)"'
+        pattern = r'''rid:\s*['"](\d+)['"]\s*,\s*resource_id:\s*['"](\d+)['"]'''
         match = re.search(pattern, response.text)
-        return match.group(1), match.group(2)
+        return match.groups() if match else None
 
     def get_lessons(self) -> list:
         """
@@ -509,9 +584,9 @@ class JJFZAutoPlayer(BaseAutoPlayer):
             'stg': self.stage
         }
         response = self.session.get(url=url, headers=self.headers, params=params)
-        pattern = r'<a href="[^"]*lesson_id=(\d+)">'
+        pattern = r'''<a\b[^>]*href=['"][^'"]*[?&]lesson_id=(\d+)(?:&[^'"]*)?['"]'''
         lesson_ids = re.findall(pattern, response.text)
-        return lesson_ids
+        return list(dict.fromkeys(lesson_ids))
 
     def get_exam_paper(self, r_id: int) -> Tuple[List[dict], List[dict], List[dict], List[dict]]:
         """
@@ -588,7 +663,5 @@ class JJFZAutoPlayer(BaseAutoPlayer):
         new_raios_df, new_checkboxes_df, new_yes_or_nos_df, new_gap_fillings_df = self.collect_unique_questions(
             r_ids=r_ids, lesson_r_ids=lesson_r_ids)
         self.update_questions(new_raios_df, new_checkboxes_df, new_yes_or_nos_df, new_gap_fillings_df)
-
-
 
 

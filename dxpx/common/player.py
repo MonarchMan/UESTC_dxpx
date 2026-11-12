@@ -146,34 +146,41 @@ class BaseAutoPlayer:
     @staticmethod
     def extract_required_lessons_info(text: str):
         """
-        从课程列表页面提取去重后的资源标识和总页数。
-        
+        从课程列表页面提取资源标识，保留同一视频的不同资源。
+
         :param text: 待解析的课程列表页面 HTML 文本。
-        :return: 三元组 (id_pairs, rest_ids, total_pages)；前两项为字符串标识列表，总页数默认为 1。
+        :return: 三元组 (id_pairs, rest_ids, total_pages)；资源对与微课件标识按出现顺序去重，总页数至少为 1。
         """
         pattern = r'<a\s+class="(?:dd_cut_on)?"[^>]*href="[^"]*v_id=(\d+)&r_id=(\d+)[^"]*"[^>]*>'
         id_pairs = re.findall(pattern, text)
 
-        rest_pattern = r'<a\s+href="[^"]*v_id=(\d+)[^"]*"(?:\s+target="_blank")?>'
+        rest_pattern = r'<a\s+href="(?![^"]*[?&]r_id=)[^"]*v_id=(\d+)[^"]*"(?:\s+target="_blank")?>'
         rest_ids = re.findall(rest_pattern, text)
 
-        # 对 id_pairs 按 v_id 去重（保留第一次出现的组合，舍弃后续重复的 v_id）
-        seen_vids = set()
+        # 按资源对去重：同一视频可能对应多个资源，只按 v_id 去重会丢掉后续资源
+        seen_pairs = set()
         unique_id_pairs = []
         for v_id, r_id in id_pairs:
-            if v_id not in seen_vids:
+            key = (v_id, r_id)
+            if key not in seen_pairs:
                 unique_id_pairs.append((v_id, r_id))
-                seen_vids.add(v_id)
+                seen_pairs.add(key)
 
         # 对 rest_ids 去重
         unique_rest_ids = list(dict.fromkeys(rest_ids))
 
         total_pages = 1
-        pages_pattern = r"<a\s+href='[^']*page=(\d+)[^']*'[^>]*>末页"
-        pages_match = re.search(pages_pattern, text)
-        if pages_match:
-            total_pages = int(pages_match.group(1))
-        return unique_id_pairs, unique_rest_ids, total_pages
+        # “末页/尾页”链接最可靠，同时兼容单双引号
+        pages_pattern = r"<a\s[^>]*href=['\"][^'\"]*[?&]page=(\d+)[^'\"]*['\"][^>]*>\s*(?:末页|尾页)"
+        pages_matches = re.findall(pages_pattern, text)
+        if pages_matches:
+            total_pages = max(int(page) for page in pages_matches)
+        else:
+            # 没有“末页”时退化为页面中出现过的最大页码
+            all_page_nums = re.findall(r'[?&]page=(\d+)', text)
+            if all_page_nums:
+                total_pages = max(int(page) for page in all_page_nums)
+        return unique_id_pairs, unique_rest_ids, max(total_pages, 1)
 
     def get_lessons_and_save(self, output_dir: Optional[str] = None, save=False) -> Tuple[List, List]:
         """
@@ -196,10 +203,15 @@ class BaseAutoPlayer:
         lesson_path = lesson_path or os.path.join(self.lesson_dir, 'lessons.json')
         lessons = self.load_lessons(lesson_path)
         failed_lessons = []
+        seen = set()
         for lesson in lessons:
             lesson_id = lesson['lesson_id']
             for id_param in lesson['id_params']:
                 video_id, resource_id = id_param['video_id'], id_param['resource_id']
+                key = (lesson_id, video_id, resource_id)
+                if key in seen:
+                    continue
+                seen.add(key)
                 r_id = self.get_lesson_r_id(video_id=video_id, resource_id=resource_id)
                 success = self.check_record(
                     lesson_id=lesson_id,

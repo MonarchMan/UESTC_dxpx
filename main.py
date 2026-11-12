@@ -20,7 +20,7 @@ def build_parser() -> argparse.ArgumentParser:
         command.set_defaults(command_parser=command)
         command.add_argument('--headers-file', default=ROOT / 'headers.json',
                              help='请求头 JSON 文件路径（默认项目根目录 headers.json）')
-        command.add_argument('--init', action='store_true', help='获取课程信息、完成观看任务并保存')
+        command.add_argument('--init', action='store_true', help='采集课程信息、提交观看记录并保存')
         command.add_argument('--output-dir', default=f'dxpx/{name}/temp', help='课程信息保存目录')
         command.add_argument('--update', action='store_true', help='从已完成考试结果更新题库')
         command.add_argument('--exam', action='store_true', help='运行考试流程')
@@ -80,8 +80,9 @@ def main(argv: list[str] | None = None):
     player = player_cls(headers=headers)
     try:
         if args.init:
-            failed, success = player.get_lessons_and_save(output_dir=args.output_dir, save=True)
-            print(f'--init 完成 {len(success)} 个课程的观看任务，未完成的课程有：\n{failed}')
+            failed, collected = player.get_lessons_and_save(output_dir=args.output_dir, save=True)
+            print(f'--init 已采集 {len(collected)} 个课程并提交观看记录，失败记录：\n{failed}')
+            print('接口接受不等于网站进度已完成，请以平台显示为准。')
         if args.update:
             player.update_from_exam_results()
         if lessons:

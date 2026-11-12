@@ -97,7 +97,7 @@ DXPX_PASSWORD=你的原始密码
 | `jjfz` | 运行积极分子相关功能 | `python main.py jjfz ...` |
 | `fzdx` | 运行发展对象相关功能 | `python main.py fzdx ...` |
 | `--help` | 查看全部命令和参数说明 | `python main.py jjfz --help` |
-| `--init` | 获取课程信息、完成观看任务并保存 | `python main.py fzdx --init` |
+| `--init` | 采集课程信息、提交观看记录并保存 | `python main.py fzdx --init` |
 | `--update` | 根据已完成考试结果更新本地题库 | `python main.py jjfz --update` |
 | `--exam` | 运行考试流程，不能与学习操作同时使用 | `python main.py fzdx --exam` |
 | `--lessons LESSON_ID ...` | 完成积极分子指定课程的视频任务 | `python main.py jjfz --lessons 567 568` |
@@ -126,7 +126,7 @@ python main.py jjfz --init
 python main.py jjfz --init --output-dir dxpx/jjfz/temp
 ```
 
-> `--init` 会采集课程信息、提交观看记录并保存到 `lessons.json`。对未完成的指定课程，可使用 3.4 中的 `--lessons` 重试。
+> `--init` 会采集课程信息、提交观看记录并保存到 `lessons.json`。资源按 `(video_id, resource_id)` 去重，同一视频的不同分节均保留。接口接受记录不代表网站进度已完成，请以平台显示为准；对未完成的指定课程，可使用 3.4 中的 `--lessons` 重试。积极分子请求默认使用阶段 `42`，发展对象默认使用阶段 `43`。
 
 #### 3.2 更新本地题库
 从已完成的综合考试和章节测试记录中抓取题目，去重后更新本地题库：
@@ -190,10 +190,10 @@ python main.py fzdx --exam --echos 10
 python -m unittest discover -s tests -p "test_*.py"
 ```
 
-登录和会话测试会发起真实请求，并可能更新 `headers.json`。只测试命令行入口时运行：
+登录和会话测试会发起真实请求，并可能更新 `headers.json`。仅运行命令行、启动认证和课程逻辑的离线测试：
 
 ```powershell
-python -m tests.test_main
+python -m unittest tests.test_main tests.test_auth_startup tests.test_player_logic
 ```
 
 ## 主要功能
