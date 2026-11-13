@@ -1,5 +1,92 @@
 [
     {
+        "lesson_id": "656",
+        "id_params": [
+            {
+                "video_id": 20454,
+                "resource_id": 77542
+            },
+            {
+                "video_id": 20454,
+                "resource_id": 77543
+            }
+        ]
+    },
+    {
+        "lesson_id": "635",
+        "id_params": [
+            {
+                "video_id": 18698,
+                "resource_id": 71998
+            },
+            {
+                "video_id": 18698,
+                "resource_id": 71999
+            },
+            {
+                "video_id": 18698,
+                "resource_id": 72000
+            },
+            {
+                "video_id": 18698,
+                "resource_id": 72001
+            },
+            {
+                "video_id": 18698,
+                "resource_id": 72002
+            },
+            {
+                "video_id": 18698,
+                "resource_id": 72003
+            }
+        ]
+    },
+    {
+        "lesson_id": "634",
+        "id_params": []
+    },
+    {
+        "lesson_id": "633",
+        "id_params": [
+            {
+                "video_id": 18559,
+                "resource_id": 71670
+            },
+            {
+                "video_id": 18559,
+                "resource_id": 71671
+            },
+            {
+                "video_id": 18560,
+                "resource_id": 71672
+            },
+            {
+                "video_id": 18560,
+                "resource_id": 71673
+            },
+            {
+                "video_id": 18560,
+                "resource_id": 71674
+            },
+            {
+                "video_id": 18510,
+                "resource_id": 71503
+            },
+            {
+                "video_id": 18510,
+                "resource_id": 71504
+            },
+            {
+                "video_id": 20877,
+                "resource_id": 79081
+            },
+            {
+                "video_id": 20877,
+                "resource_id": 79082
+            }
+        ]
+    },
+    {
         "lesson_id": "631",
         "id_params": [
             {
@@ -41,35 +128,6 @@
             {
                 "video_id": 18452,
                 "resource_id": 71318
-            }
-        ]
-    },
-    {
-        "lesson_id": "635",
-        "id_params": [
-            {
-                "video_id": 18698,
-                "resource_id": 71998
-            },
-            {
-                "video_id": 18698,
-                "resource_id": 71999
-            },
-            {
-                "video_id": 18698,
-                "resource_id": 72000
-            },
-            {
-                "video_id": 18698,
-                "resource_id": 72001
-            },
-            {
-                "video_id": 18698,
-                "resource_id": 72002
-            },
-            {
-                "video_id": 18698,
-                "resource_id": 72003
             }
         ]
     },
@@ -157,63 +215,5 @@
                 "resource_id": 71438
             }
         ]
-    },
-    {
-        "lesson_id": "656",
-        "id_params": [
-            {
-                "video_id": 20454,
-                "resource_id": 77542
-            },
-            {
-                "video_id": 20454,
-                "resource_id": 77543
-            }
-        ]
-    },
-    {
-        "lesson_id": "633",
-        "id_params": [
-            {
-                "video_id": 18559,
-                "resource_id": 71670
-            },
-            {
-                "video_id": 18559,
-                "resource_id": 71671
-            },
-            {
-                "video_id": 18560,
-                "resource_id": 71672
-            },
-            {
-                "video_id": 18560,
-                "resource_id": 71673
-            },
-            {
-                "video_id": 18560,
-                "resource_id": 71674
-            },
-            {
-                "video_id": 18510,
-                "resource_id": 71503
-            },
-            {
-                "video_id": 18510,
-                "resource_id": 71504
-            },
-            {
-                "video_id": 20877,
-                "resource_id": 79081
-            },
-            {
-                "video_id": 20877,
-                "resource_id": 79082
-            }
-        ]
-    },
-    {
-        "lesson_id": "634",
-        "id_params": []
     }
 ]

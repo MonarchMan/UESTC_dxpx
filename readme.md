@@ -43,13 +43,7 @@ python -m pip install -r requirements.txt
 uv sync --locked
 ```
 
-安装完成后，可直接运行：
-
-```powershell
-uv run python main.py fzdx --init
-```
-
-依赖包含 `requests`、`pandas`、`numpy`、`pypinyin`、`pyarrow` 和 `tqdm`。`pyarrow` 用于读写 Parquet 题库，当前固定为已在本机验证可用的 `22.0.0`，不要单独升级或替换为 `fastparquet`。`requirements.txt` 中的 `sys_platform == 'win32'` 表示该项依赖仅在 Windows 上安装，64 位 Windows 同样适用。
+接下来配置账户信息。
 
 ### 2. 认证配置
 #### 2.1 自动登录（推荐）
