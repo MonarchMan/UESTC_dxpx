@@ -207,7 +207,8 @@ class FZDXAutoPlayer(BaseAutoPlayer):
         }
         url = 'https://dxpx.uestc.edu.cn/fzdx/exam_center/end_show'
         response = self.session.get(url=url, params=params, headers=self.headers)
-        pattern = r'<div class="error_sub">(.*?)</div>\s*(?=<div class="error_sub"|<div class="clear"></div>)'
+        # 以相邻题目或页脚为边界，避免填空题内部的 clear 标签截断答案。
+        pattern = r'<div class="error_sub">(.*?)(?=<div class="error_sub">|<div class="foot\b|$)'
         return self.extract_questions(response.text, pattern)
 
     def get_lesson_exam_paper(self, rid: int):

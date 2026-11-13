@@ -31,6 +31,7 @@ class BaseAutoPlayer:
         self.checkbox_df = pd.DataFrame()
         self.yes_or_no_df = pd.DataFrame()
         self.gap_filling_df = pd.DataFrame()
+        self._answer_indexes = {}
 
     def get_lessons(self):
         """
@@ -292,13 +293,27 @@ class BaseAutoPlayer:
             if os.path.exists(file_path):
                 setattr(self, attr, pd.read_parquet(file_path))
 
+    @staticmethod
+    def normalize_question(text: str) -> str:
+        """
+        统一题干中的 HTML 转义、括号与空白，不改变原题干。
+
+        :param text: 原始题干或选项文本。
+        :return: 标准化后的匹配键。
+        """
+        text = html.unescape(text)
+        text = text.translate(str.maketrans({'（': '(', '）': ')'}))
+        text = re.sub(r'\s+', ' ', text).strip()
+        text = re.sub(r'\(\s*', '(', text)
+        return re.sub(r'\s*\)', ')', text)
+
     def search_answer(self, question: str, question_type: str):
         """
-        按题型和完整题干查找本地题库中的答案。
+        优先按原题干查找答案，再使用缓存的标准化匹配键查找。
         
         :param question: 待匹配的完整题干文本。
         :param question_type: 题型，可取 radio、checkbox、yes_or_no 或 gap_filling。
-        :return: 匹配题目的 correct_answer 字段值；题库为空或未找到时返回空字符串。
+        :return: 匹配答案；填空题取首个可接受写法，题库为空、未命中或候选冲突时返回空字符串。
         :raises ValueError: 传入了不支持的题型。
         """
         if question_type == 'radio':
@@ -316,10 +331,31 @@ class BaseAutoPlayer:
         if df.empty:
             return ''
 
-        row = df[df['title'] == question]
-        if not row.empty:
-            return row.iloc[0]['correct_answer']
-        return ''
+        cached = self._answer_indexes.get(question_type)
+        if cached is None or cached[0] is not df or cached[1] != len(df):
+            exact = {}
+            normalized = {}
+            for row in df.to_dict('records'):
+                # 旧题库可能存在解析失败产生的空答案，不让它遮蔽有效答案。
+                if not str(row['correct_answer']).strip():
+                    continue
+                signature = (
+                    str(row['correct_answer']),
+                    tuple(self.normalize_question(str(option)) for option in row.get('options', [])),
+                )
+                exact.setdefault(row['title'], set()).add(signature)
+                normalized.setdefault(self.normalize_question(row['title']), set()).add(signature)
+            cached = (df, len(df), exact, normalized)
+            self._answer_indexes[question_type] = cached
+        # 原文优先；标准化键有答案或选项冲突时，不任取第一条。
+        matches = cached[2].get(question)
+        if matches is None:
+            matches = cached[3].get(self.normalize_question(question), set())
+        if len(matches) != 1:
+            return ''
+        answer = next(iter(matches))[0]
+        # 平台用竖线列出填空题的可接受写法，提交其中一种即可。
+        return answer.split('|')[0].strip() if question_type == 'gap_filling' else answer
 
     def update_questions(
             self,
@@ -329,7 +365,7 @@ class BaseAutoPlayer:
             new_gap_fillings_df: pd.DataFrame,
             output_dir: Optional[str] = None):
         """
-        合并新旧题库，按题干去重、拼音排序并重排索引后保存。
+        合并新旧题库，按标准化题干、选项和答案去重后排序保存。
         
         :param new_radios_df: 待合并的新单选题 DataFrame。
         :param new_checkboxes_df: 待合并的新多选题 DataFrame。
@@ -343,7 +379,7 @@ class BaseAutoPlayer:
 
         def merge_and_deduplicate(existing_df, new_df):
             """
-            合并两份题库，按题干保留首条记录并重排索引。
+            合并两份题库，补全空答案、去重并保留有效答案冲突。
             
             :param existing_df: 已有题库 DataFrame。
             :param new_df: 待合并的新题 DataFrame。
@@ -352,9 +388,22 @@ class BaseAutoPlayer:
             if new_df.empty:
                 return existing_df.reset_index(drop=True)
 
-            # 原题在前，重复题保留已有答案；排序后重排索引用于文本编号。
+            # 原题在前，保留原始展示文本；有有效答案时移除对应的空答案记录。
             combined_df = pd.concat([existing_df, new_df], axis=0, ignore_index=True)
-            deduplicated_df = combined_df.drop_duplicates(subset=['title'], keep='first')
+            question_keys = combined_df.apply(lambda row: (
+                self.normalize_question(row['title']),
+                tuple(self.normalize_question(str(option)) for option in row.get('options', [])),
+            ), axis=1)
+            answered = combined_df['correct_answer'].fillna('').astype(str).str.strip().ne('')
+            answered_keys = set(question_keys[answered])
+            combined_df = combined_df.loc[answered | ~question_keys.isin(answered_keys)]
+            # 仅合并题干格式不同但选项、答案一致的条目，冲突项保留供查询拒绝。
+            keys = combined_df.apply(lambda row: (
+                self.normalize_question(row['title']),
+                tuple(self.normalize_question(str(option)) for option in row.get('options', [])),
+                str(row['correct_answer']),
+            ), axis=1)
+            deduplicated_df = combined_df.loc[~keys.duplicated()]
             return deduplicated_df.sort_values(
                 by='title',
                 key=lambda x: x.apply(lambda y: ''.join(lazy_pinyin(str(y)))),
@@ -364,6 +413,7 @@ class BaseAutoPlayer:
         self.checkbox_df = merge_and_deduplicate(self.checkbox_df, new_checkboxes_df)
         self.yes_or_no_df = merge_and_deduplicate(self.yes_or_no_df, new_yes_or_nos_df)
         self.gap_filling_df = merge_and_deduplicate(self.gap_filling_df, new_gap_fillings_df)
+        self._answer_indexes.clear()
 
         self.save_result_parquet(self.radio_df, self.checkbox_df, self.yes_or_no_df, self.gap_filling_df, output_dir)
         self.save_result(self.radio_df, self.checkbox_df, self.yes_or_no_df, self.gap_filling_df, output_dir)

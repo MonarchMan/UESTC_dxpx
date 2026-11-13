@@ -231,15 +231,19 @@ python main.py fzdx --update
 ## 运行效果
 ### 1. 视频刷课
 截至到测试时间，脚本顺利运行，并完成所有课程的观看任务。<br>
-![运行效果](images/result.png)
 
-### 2. 章节测试刷题
+**积极分子视频刷课：**
+![运行效果](images/result.png)
+**发展对象视频刷课：**
+![运行效果](images/fzdx_chapter_video_result.png)
+
+### 2. 积极分子章节测试刷题
 截至到测试时间，脚本顺利运行，并完成所有章节测试。<br>
 ![运行效果](images/chapter_test.png)
 
 ### 3. 综合测试刷题
-本次运行基于的题库版本较旧，分数较低，不过够用。<br>
-![](images/final_exam.png)
+获得满分**100分**！
+![](images/fzdx_final_exam.png)
 
 ## 其他脚本
 [研究生英语-学堂在线刷题脚本](mooc/english.py)，题目和答案见[研究生英语-学堂在线题库](doc/mooc/english.txt)。
