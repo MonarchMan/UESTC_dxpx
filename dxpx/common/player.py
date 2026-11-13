@@ -298,7 +298,7 @@ class BaseAutoPlayer:
         
         :param question: 待匹配的完整题干文本。
         :param question_type: 题型，可取 radio、checkbox、yes_or_no 或 gap_filling。
-        :return: 匹配题目的 correct_answer 字段值；未找到时返回空字符串。
+        :return: 匹配题目的 correct_answer 字段值；题库为空或未找到时返回空字符串。
         :raises ValueError: 传入了不支持的题型。
         """
         if question_type == 'radio':
@@ -311,6 +311,10 @@ class BaseAutoPlayer:
             df = self.gap_filling_df
         else:
             raise ValueError(f"Invalid question type: {question_type}")
+
+        # 缺少题库文件时保留无列空表，按未命中处理，避免访问 title 时报错。
+        if df.empty:
+            return ''
 
         row = df[df['title'] == question]
         if not row.empty:
