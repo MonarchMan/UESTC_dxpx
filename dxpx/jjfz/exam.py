@@ -7,6 +7,7 @@ from dxpx.jjfz.jjfz import JJFZAutoPlayer
 
 class Exam(BaseExam):
     player_cls = JJFZAutoPlayer
+    record_url = 'https://dxpx.uestc.edu.cn/jjfz/exam_center/end_record'
 
     def __init__(self, headers: dict, stage: int = 42):
         """

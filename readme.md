@@ -94,6 +94,7 @@ DXPX_PASSWORD=你的原始密码
 | `--init` | 采集课程信息、提交观看记录并保存 | `python main.py fzdx --init` |
 | `--update` | 根据已完成考试结果更新本地题库 | `python main.py jjfz --update` |
 | `--exam` | 运行考试流程，不能与学习操作同时使用 | `python main.py fzdx --exam` |
+| `--score` | 查询综合考试历史成绩并显示最高分，单独使用；支持 jjfz、fzdx | `python main.py fzdx --score` |
 | `--lessons LESSON_ID ...` | 完成积极分子指定课程的视频任务 | `python main.py jjfz --lessons 567 568` |
 | `--mode end\|lesson` | 选择积极分子综合考试或章节测试 | `python main.py jjfz --exam --mode lesson` |
 | `--echos NUMBER` | 设置考试执行轮数；积极分子默认 30，发展对象默认 10 | `python main.py fzdx --exam --echos 1` |

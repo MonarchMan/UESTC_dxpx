@@ -1,3 +1,4 @@
+import html
 import re
 from typing import Optional
 
@@ -9,6 +10,7 @@ from dxpx.common.login import AuthSession
 
 class BaseExam:
     player_cls = None
+    record_url = None
 
     def __init__(self, headers: dict, stage: int = 43):
         """
@@ -21,6 +23,64 @@ class BaseExam:
         self.ts_list = []
         self.headers = headers
         self.session = AuthSession(headers)
+
+    def get_exam_scores(self) -> list[dict]:
+        """
+        获取当前账号、培训阶段的综合考试历史成绩。
+
+        :return: 按页面顺序排列的记录列表，每项含时间、分数和用时。
+        :raises RuntimeError: 平台返回错误页面或无法解析成绩记录。
+        """
+        if self.record_url is None:
+            raise NotImplementedError('未实现')
+        params = {
+            'stg': self.stage,
+        }
+        response = self.session.get(self.record_url, headers=self.headers, params=params, timeout=30)
+        response.raise_for_status()
+        if re.search(r'<title>\s*错误\s*</title>', response.text):
+            raise RuntimeError('无法查询考试记录，请确认当前账号具有该培训阶段的访问权限')
+        return self.extract_exam_scores(response.text)
+
+    @staticmethod
+    def extract_exam_scores(page_html: str) -> list[dict]:
+        """
+        从考试记录表格提取时间、数值分数和用时。
+
+        :param page_html: 官方考试记录页面的 HTML 文本。
+        :return: 历史成绩字典列表，无考试记录时返回空列表。
+        :raises RuntimeError: 页面包含试卷记录但无法解析对应的成绩。
+        """
+        records = []
+        for row in re.findall(r'<tr\b[^>]*>(.*?)</tr>', page_html, re.DOTALL):
+            if 'end_show?' not in row:
+                continue
+            cells = [html.unescape(re.sub(r'<[^>]+>', '', cell)).strip()
+                     for cell in re.findall(r'<td\b[^>]*>(.*?)</td>', row, re.DOTALL)]
+            score = re.search(r'分数[：:]\s*(\d+(?:\.\d+)?)\s*分', ' '.join(cells))
+            if len(cells) < 3 or score is None:
+                raise RuntimeError('考试记录格式发生变化，无法解析历史成绩')
+            records.append({
+                'time': re.sub(r'^\d+[.、]\s*', '', cells[0]),
+                'score': float(score.group(1)),
+                'duration': re.sub(r'^用时[：:]\s*', '', cells[2]),
+            })
+        if 'end_show?' in page_html and not records:
+            raise RuntimeError('考试记录格式发生变化，无法解析历史成绩')
+        return records
+
+    def print_exam_scores(self):
+        """
+        打印综合考试历史成绩及最高分，无记录时给出提示。
+        """
+        records = self.get_exam_scores()
+        if not records:
+            print('暂无综合考试记录')
+            return
+        print('序号\t考试时间\t\t分数\t用时')
+        for i, record in enumerate(records, 1):
+            print(f"{i}\t{record['time']}\t{record['score']:g}\t{record['duration']}")
+        print(f"共 {len(records)} 次考试，最高分：{max(record['score'] for record in records):g} 分")
 
     def create_player(self):
         """

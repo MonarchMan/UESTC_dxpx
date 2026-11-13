@@ -85,6 +85,19 @@ class MainCommandTest(unittest.TestCase):
                     getattr(factory.return_value, method).assert_called_once_with(echos=echos)
                     factory.return_value.session.close.assert_called_once_with()
 
+    def test_score_dispatch(self):
+        """
+        验证两类培训查询历史成绩时不会启动考试，并正常关闭会话。
+        """
+        for platform, cls in [('jjfz', 'JJFZExam'), ('fzdx', 'FZDXExam')]:
+            with self.subTest(platform=platform), patch.object(main, 'get_auth_headers') as load, \
+                    patch.object(main, cls) as factory:
+                main.main([platform, '--score'])
+                factory.assert_called_once_with(headers=load.return_value)
+                factory.return_value.print_exam_scores.assert_called_once_with()
+                factory.return_value.finish_many_exams.assert_not_called()
+                factory.return_value.session.close.assert_called_once_with()
+
     def test_invalid_arguments(self):
         """
         验证冲突参数、不支持的功能及非正数轮数在读取凭据前被拒绝。
@@ -95,6 +108,9 @@ class MainCommandTest(unittest.TestCase):
             ['fzdx', '--echos', '2'], ['fzdx', '--exam', '--echos', '0'],
             ['jjfz', '--exam', '--echos', '-1'], ['fzdx', '--exam', '--mode', 'lesson'],
             ['fzdx', '--lessons', '567'],
+            ['fzdx', '--score', '--exam'], ['fzdx', '--score', '--update'],
+            ['fzdx', '--score', '--init'], ['jjfz', '--score', '--lessons', '567'],
+            ['fzdx', '--score', '--echos', '1'], ['jjfz', '--score', '--mode', 'end'],
         ]
         for argv in cases:
             with self.subTest(argv=argv), patch.object(main, 'get_auth_headers') as load:
@@ -110,6 +126,7 @@ class MainCommandTest(unittest.TestCase):
         cases = [
             (['fzdx', '--update'], 'FZDXAutoPlayer', 'update_from_exam_results'),
             (['fzdx', '--exam'], 'FZDXExam', 'finish_many_exams'),
+            (['fzdx', '--score'], 'FZDXExam', 'print_exam_scores'),
         ]
         for argv, cls, method in cases:
             with self.subTest(argv=argv):

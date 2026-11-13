@@ -24,6 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
         command.add_argument('--output-dir', default=f'dxpx/{name}/temp', help='课程信息保存目录')
         command.add_argument('--update', action='store_true', help='从已完成考试结果更新题库')
         command.add_argument('--exam', action='store_true', help='运行考试流程')
+        command.add_argument('--score', action='store_true', help='查询综合考试历史成绩并显示最高分')
         command.add_argument('--echos', type=int, default=None,
                              help=f'考试执行轮数（默认 {30 if name == "jjfz" else 10}）')
         if name == 'jjfz':
@@ -48,13 +49,15 @@ def main(argv: list[str] | None = None):
         parser.print_help()
         return
     learning = args.init or args.update or lessons
+    if args.score and (args.exam or learning):
+        parser.error('--score 不能与 --exam、--init、--update 或 --lessons 同时使用')
     if args.exam and learning:
         parser.error('--exam 不能与 --init、--update 或 --lessons 同时使用')
     if not args.exam and (args.echos is not None or mode is not None):
         parser.error('--echos 和 --mode 需要与 --exam 一起使用')
     if args.echos is not None and args.echos < 1:
         parser.error('--echos 必须大于 0')
-    if not args.exam and not learning:
+    if not args.exam and not args.score and not learning:
         args.command_parser.print_help()
         return
 
@@ -63,12 +66,14 @@ def main(argv: list[str] | None = None):
     except RuntimeError as error:
         parser.exit(1, f'{error}\n')
 
-    if args.exam:
+    if args.exam or args.score:
         exam_cls = JJFZExam if args.platform == 'jjfz' else FZDXExam
         exam = exam_cls(headers=headers)
         echos = args.echos if args.echos is not None else (30 if args.platform == 'jjfz' else 10)
         try:
-            if mode == 'lesson':
+            if args.score:
+                exam.print_exam_scores()
+            elif mode == 'lesson':
                 exam.finish_many_lesson_exams(echos=echos)
             else:
                 exam.finish_many_exams(echos=echos)

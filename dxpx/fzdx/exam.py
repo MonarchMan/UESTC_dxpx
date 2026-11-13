@@ -5,6 +5,7 @@ from dxpx.fzdx.fzdx import FZDXAutoPlayer
 
 class FZDXExam(BaseExam):
     player_cls = FZDXAutoPlayer
+    record_url = 'https://dxpx.uestc.edu.cn/fzdx/exam_center/end_record'
 
     def __init__(self, headers: dict):
         """
